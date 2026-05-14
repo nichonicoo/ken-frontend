@@ -1,65 +1,89 @@
-import Image from "next/image";
+import { getProducts } from "@/app/api/graphql/page";
+import ProductCard from "@/components/ProductCard";
+import {getHomeSlider} from "@/app/api/graphql/slider";
+import Slider from "@/components/SlideShow";
 
-export default function Home() {
+export default async function Page() {
+  const products = await getProducts("small-plants");
+  const dataSlider = await getHomeSlider();
+
+  const slides = dataSlider
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+  //   <div style={{ padding: "20px" }}>
+  //     <main style={{ padding: "20px" }}>
+  //     {/* <h1>Homepage Slider</h1> */}
+  //     <Slider slides={slides} autoPlayInterval={12000} />
+
+  //   </main>
+  //     <h1>Products</h1>
+  //     <div style={{
+  //       display: "flex",
+  //       gap: "20px",
+  //       flexWrap: "wrap"
+  //     }}>
+  //       {products.map((p, i) => (
+  //         <ProductCard
+  //           key={i}
+  //           name={p.name}
+  //           price={p.price}
+  //           image={p.image?.sourceUrl}
+  //           category={
+  //             p.productCategories?.nodes?.[0]?.name
+  //           }
+  //         />
+  //       ))}
+  //     </div>
+  //   </div>
+  // );
+  <div style={styles.mainWrapper}>
+      {/* Slider — full width, no side padding */}
+      <Slider slides={dataSlider} autoPlayInterval={12000} />
+ 
+      {/* Products Section */}
+      <div style={styles.container}>
+        <h1 style={styles.title}>Products</h1>
+        <div style={styles.productGrid}>
+          {products.map((p, i) => (
+            <ProductCard
+              key={i}
+              name={p.name}
+              slug={p.slug}
+              price={p.price}
+              image={p.image?.sourceUrl}
+              category={p.productCategories?.nodes?.[0]?.name}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          ))}
         </div>
-      </main>
+      </div>
     </div>
   );
 }
+
+const styles = {
+  mainWrapper: {
+    width: "100%",
+    paddingTop: "120px", // Jarak agar tidak tertutup Header fixed
+    paddingBottom: "60px",
+    backgroundColor: "#fff",
+  },
+  container: {
+    maxWidth: "1200px", // Membatasi lebar agar tidak terlalu melebar di layar besar
+    margin: "0 auto",    // KUNCI: Membuat seluruh konten berada di tengah horizontal
+    padding: "0 20px",   // Jarak aman agar tidak menempel ke pinggir layar HP
+  },
+  title: {
+    fontSize: "32px",
+    fontWeight: "bold",
+    marginBottom: "40px",
+    textAlign: "left" as const, // Bisa diubah ke "center" jika ingin teks judulnya di tengah
+    color: "#000",
+  },
+  productGrid: {
+    display: "grid",
+    // Mengatur grid agar fleksibel tapi tetap rapi
+    gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+    gap: "25px",
+    justifyItems: "center", // Memastikan setiap card berada di tengah sel grid-nya
+  },
+};
