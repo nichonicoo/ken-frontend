@@ -1,89 +1,43 @@
-import { getProducts } from "@/app/api/graphql/page";
-import ProductCard from "@/components/ProductCard";
-import {getHomeSlider} from "@/app/api/graphql/slider";
+import { getProducts, getHomeBanners } from "@/app/api/graphql/front_api";
+import { getHomeSlider } from "@/app/api/graphql/slider";
+import { getLatestProduct } from "./api/graphql/Products";
 import Slider from "@/components/SlideShow";
+import Carousel from "@/components/Carausell";
+import HeroBanner from "@/components/staticBanner";
 
 export default async function Page() {
-  const products = await getProducts("small-plants");
   const dataSlider = await getHomeSlider();
-
-  const slides = dataSlider
+  const Banners = await getHomeBanners();
+  const Banner_1 = Banners.find((b) => b.title === "Home Banner 1");
+  const latestProduct = await getLatestProduct();
 
   return (
-  //   <div style={{ padding: "20px" }}>
-  //     <main style={{ padding: "20px" }}>
-  //     {/* <h1>Homepage Slider</h1> */}
-  //     <Slider slides={slides} autoPlayInterval={12000} />
-
-  //   </main>
-  //     <h1>Products</h1>
-  //     <div style={{
-  //       display: "flex",
-  //       gap: "20px",
-  //       flexWrap: "wrap"
-  //     }}>
-  //       {products.map((p, i) => (
-  //         <ProductCard
-  //           key={i}
-  //           name={p.name}
-  //           price={p.price}
-  //           image={p.image?.sourceUrl}
-  //           category={
-  //             p.productCategories?.nodes?.[0]?.name
-  //           }
-  //         />
-  //       ))}
-  //     </div>
-  //   </div>
-  // );
-  <div style={styles.mainWrapper}>
-      {/* Slider — full width, no side padding */}
+    <div style={styles.mainWrapper}>
+      {/* hero slider — full bleed, sits flush under fixed navbar */}
       <Slider slides={dataSlider} autoPlayInterval={12000} />
- 
-      {/* Products Section */}
-      <div style={styles.container}>
-        <h1 style={styles.title}>Products</h1>
-        <div style={styles.productGrid}>
-          {products.map((p, i) => (
-            <ProductCard
-              key={i}
-              name={p.name}
-              slug={p.slug}
-              price={p.price}
-              image={p.image?.sourceUrl}
-              category={p.productCategories?.nodes?.[0]?.name}
-            />
-          ))}
+
+      <Carousel word1="New Arrivals" word2="Just In" products={latestProduct}/>
+
+      {Banner_1 && (
+        <div style={styles.bannerWrapper}>
+          <HeroBanner data={Banner_1} />
         </div>
-      </div>
+      )}
     </div>
   );
 }
 
-const styles = {
+const styles: { [key: string]: React.CSSProperties } = {
   mainWrapper: {
     width: "100%",
-    paddingTop: "120px", // Jarak agar tidak tertutup Header fixed
-    paddingBottom: "60px",
+    // paddingTop match the fixed header height — adjust to header
+    // paddingTop: "72px",
     backgroundColor: "#fff",
   },
-  container: {
-    maxWidth: "1200px", // Membatasi lebar agar tidak terlalu melebar di layar besar
-    margin: "0 auto",    // KUNCI: Membuat seluruh konten berada di tengah horizontal
-    padding: "0 20px",   // Jarak aman agar tidak menempel ke pinggir layar HP
-  },
-  title: {
-    fontSize: "32px",
-    fontWeight: "bold",
-    marginBottom: "40px",
-    textAlign: "left" as const, // Bisa diubah ke "center" jika ingin teks judulnya di tengah
-    color: "#000",
-  },
-  productGrid: {
-    display: "grid",
-    // Mengatur grid agar fleksibel tapi tetap rapi
-    gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-    gap: "25px",
-    justifyItems: "center", // Memastikan setiap card berada di tengah sel grid-nya
+  bannerWrapper: {
+    padding: "0 32px 64px",
+    maxWidth: "1400px",
+    margin: "0 auto",
+    boxSizing: "border-box",
   },
 };

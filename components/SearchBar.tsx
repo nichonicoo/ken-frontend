@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { searchProducts } from "@/app/api/graphql/page";
+import { searchProducts } from "@/app/api/graphql/front_api";
 import { useRouter } from "next/navigation";
 
 interface SearchResult {
@@ -75,11 +75,16 @@ export default function SearchBar() {
   };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!query.trim()) return;
-    setOpen(false);
-    router.push(`/products?search=${encodeURIComponent(query.trim())}`);
-    setQuery("");
+  e.preventDefault();
+  goToSearchPage();
+  };
+
+  const goToSearchPage = () => {
+  if (!query.trim()) return;
+  setOpen(false);
+  setResults([]);
+  router.push(`/products?search=${encodeURIComponent(query.trim())}`);
+  setQuery("");
   };
 
   return (
@@ -154,7 +159,8 @@ export default function SearchBar() {
 
               {!loading && results.length > 0 && (
                 <button
-                  onClick={handleSubmit as any}
+                  // onClick={handleSubmit as any}
+                  onClick={goToSearchPage}
                   style={styles.seeAllBtn}
                 >
                   Lihat semua hasil untuk "{query}" →

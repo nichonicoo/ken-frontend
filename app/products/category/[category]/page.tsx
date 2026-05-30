@@ -1,6 +1,14 @@
-import { getProductsByCategory } from "@/app/api/graphql/Products";
+import { getProductsByCategory} from "@/app/api/graphql/Products";
 import ProductCard from "@/components/ProductCard";
 import Breadcrumb from "@/components/Breadcrumbs";
+import { Cormorant_Garamond } from "next/font/google";
+import { getCategoriesSpecific } from "@/app/api/graphql/front_api";
+import CategoryClient from "@/components/CategoryClient";
+
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["300", "400", "500"],
+});
 
 export default async function CategoryPage({
   params,
@@ -9,53 +17,23 @@ export default async function CategoryPage({
 }) {
   const { category } = await params;
   const products = await getProductsByCategory(category);
-  console.log(products)
+  const categoriesspecific = await getCategoriesSpecific(category)
+  // console.log('categories specific: ', categoriesspecific)
+  // console.log(products)
 
   const slug = category.toLowerCase();
 
-  // const categoryName = products[0]?.productCategories?.nodes?.[0]?.name || "Category";
   const categoryName =
     products[0]?.productCategories?.nodes?.[0]?.name ||
     formatTitle(slug);
+
+  const heroImage = categoriesspecific?.image?.sourceUrl;
   return (
-    <div style={pageWrapper}>
-      <div style={container}>
-        <Breadcrumb
-          items={[
-            { label: "Home", href: "/" },
-            { label: "Products", href: "/products" },
-            { label: categoryName },
-          ]}
-        />
-
-        {/* Judul tetap di kiri relatif terhadap container */}
-        <h1 style={titleStyle}>{categoryName}</h1>
-
-        {products.length === 0 ? (
-          <div style={emptyStateContainer}>
-            <div style={{ textAlign: "center" }}>
-              <p style={{ fontSize: "18px", color: "#0b0b0b", fontWeight: "500" }}>
-                No products found in this category.
-              </p>
-              <a href="/products" style={backLink}>Browse all products</a>
-            </div>
-          </div>
-        ) : (
-          <div style={grid}>
-            {products.map((p: any, i: number) => (
-              <ProductCard
-                key={i}
-                name={p.name}
-                slug={p.slug}
-                price={p.price}
-                image={p.image?.sourceUrl}
-                category={p.productCategories?.nodes?.[0]?.name}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+    <CategoryClient
+      products={products}
+      categoryName={categoryName}
+      heroImage={heroImage}
+    />
   );
 }
 
@@ -87,19 +65,19 @@ const backLink = {
 const pageWrapper = {
   width: "100%",
   display: "flex",
-  justifyContent: "center", // Memastikan container utama ada di tengah layar
+  justifyContent: "center", 
   padding: "40px 20px",
 };
 
 const container = {
   width: "100%",
-  maxWidth: "1200px", // Lebar maksimal konten agar tidak melebar ke pinggir layar monitor besar
-  margin: "0 auto", // Ini yang menjaga seluruh blok konten di tengah layar
+  maxWidth: "1200px",
+  margin: "0 auto", 
   padding: "0 20px"
 };
 
 const titleStyle = {
-  textAlign: "left" as const, // Menjaga judul kategori tetap di kiri
+  textAlign: "left" as const, 
   fontSize: "32px",
   fontWeight: "bold",
   marginBottom: "30px",
@@ -110,7 +88,7 @@ const grid = {
   display: "grid",
   gridTemplateColumns: "repeat(auto-fit, minmax(220px, 140px))",
   gap: "25px",
-  justifyContent: "center", // Memusatkan deretan produk jika jumlahnya sedikit
-  justifyItems: "center",   // Memusatkan kartu produk di dalam selnya
+  justifyContent: "center", 
+  justifyItems: "center",   
   margin: "0 auto",
 };

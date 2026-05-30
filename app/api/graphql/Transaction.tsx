@@ -226,7 +226,7 @@ export async function addToCart(productId: number, quantity: number = 1) {
     throw new Error("Add to cart failed");
   }
 
-  console.log("🛒 addToCart result:", JSON.stringify(json, null, 2));
+  // console.log("🛒 addToCart result:", JSON.stringify(json, null, 2));
   return json.data.addToCart.cart;
 }
 
@@ -266,7 +266,7 @@ export async function getCart() {
 
   const json = await gqlFetch({ query });
 
-  console.log("🛒 getCart result:", JSON.stringify(json, null, 2));
+  // console.log("🛒 getCart result:", JSON.stringify(json, null, 2));
   return json.data.cart;
 }
 
@@ -311,11 +311,7 @@ export async function removeFromCart(keys: string[]) {
 }
 
 export async function applyCoupon(code: string) {
-  const res = await fetch(API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      query: `
+  const mutation = `
         mutation ApplyCoupon {
           applyCoupon(input: { code: "${code}" }) {
             cart {
@@ -329,10 +325,21 @@ export async function applyCoupon(code: string) {
             }
           }
         }
-      `,
-    }),
-  });
+  `;
 
-  const json = await res.json();
-  return json.data.applyCoupon.cart;
+  const json = await gqlFetch({ query: mutation, variables: { code } });
+  return json.data;
+}
+
+export async function removeCoupon(code: string) {
+  const mutation = `
+  removeCoupons(input: {codes: "${code}""}) {
+    cart {
+      total
+    }
+  }
+  `;
+
+  const json = await gqlFetch({ query: mutation, variables: { code } });
+  return json.data;
 }

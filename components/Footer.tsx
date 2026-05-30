@@ -1,367 +1,107 @@
-// "use client";
+"use client";
+import Link from "next/link";
+import { Cormorant_Garamond } from "next/font/google";
 
-// import { useState } from "react";
-
-// export default function Footer() {
-//   const [email, setEmail] = useState("");
-//   const [subscribed, setSubscribed] = useState(false);
-
-//   const handleSubscribe = (e: React.FormEvent) => {
-//     e.preventDefault();
-//     if (email) {
-//       setSubscribed(true);
-//       setEmail("");
-//     }
-//   };
-
-//   return (
-//     <footer style={styles.footer}>
-//       {/* Top wave divider */}
-//       <div style={styles.waveDivider}>
-//         <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: "block", width: "100%" }}>
-//           <path d="M0,30 C360,60 1080,0 1440,30 L1440,60 L0,60 Z" fill="#1a2e3b" />
-//         </svg>
-//       </div>
-
-//       <div style={styles.inner}>
-//         {/* Brand column */}
-//         <div style={styles.col}>
-//           <div style={styles.brand}>ecentio</div>
-//           <p style={styles.tagline}>Your Essentials</p>
-//           <p style={styles.desc}>
-//             Produk berkualitas untuk kehidupan sehari-hari. Dari dapur hingga meja kerja, kami hadirkan yang terbaik.
-//           </p>
-//           <div style={styles.socials}>
-//             {/* Instagram */}
-//             <a href="#" style={styles.socialLink} aria-label="Instagram">
-//               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-//                 <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-//                 <circle cx="12" cy="12" r="4"/>
-//                 <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor"/>
-//               </svg>
-//             </a>
-//             {/* TikTok */}
-//             <a href="#" style={styles.socialLink} aria-label="TikTok">
-//               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-//                 <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/>
-//               </svg>
-//             </a>
-//             {/* WhatsApp */}
-//             <a href="#" style={styles.socialLink} aria-label="WhatsApp">
-//               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-//                 <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-//               </svg>
-//             </a>
-//           </div>
-//         </div>
-
-//         {/* Quick Links */}
-//         <div style={styles.col}>
-//           <h4 style={styles.colTitle}>Navigasi</h4>
-//           <ul style={styles.linkList}>
-//             {["Beranda", "Produk", "Tentang Kami", "Customer Care", "Blog"].map((item) => (
-//               <li key={item}>
-//                 <a href="#" style={styles.footerLink}>{item}</a>
-//               </li>
-//             ))}
-//           </ul>
-//         </div>
-
-//         {/* Categories */}
-//         <div style={styles.col}>
-//           <h4 style={styles.colTitle}>Kategori</h4>
-//           <ul style={styles.linkList}>
-//             {["Blender", "Lunch Box", "Bottle", "Kitchen Tools", "Office Essentials"].map((item) => (
-//               <li key={item}>
-//                 <a href="#" style={styles.footerLink}>{item}</a>
-//               </li>
-//             ))}
-//           </ul>
-//         </div>
-
-//         {/* Newsletter + Contact */}
-//         <div style={styles.col}>
-//           <h4 style={styles.colTitle}>Newsletter</h4>
-//           <p style={styles.newsletterDesc}>Dapatkan promo eksklusif & update produk terbaru.</p>
-//           <form onSubmit={handleSubscribe} style={styles.form}>
-//             <input
-//               type="email"
-//               placeholder="Email kamu..."
-//               value={email}
-//               onChange={(e) => setEmail(e.target.value)}
-//               style={styles.input}
-//               required
-//             />
-//             <button type="submit" style={styles.subscribeBtn}>
-//               {subscribed ? "✓" : "→"}
-//             </button>
-//           </form>
-//           {subscribed && (
-//             <p style={styles.successMsg}>Terima kasih sudah subscribe! 🎉</p>
-//           )}
-
-//           <div style={{ marginTop: "24px" }}>
-//             <h4 style={{ ...styles.colTitle, marginBottom: "10px" }}>Hubungi Kami</h4>
-//             <p style={styles.contactItem}>📧 hello@ecentio.com</p>
-//             <p style={styles.contactItem}>📱 +62 812-3456-7890</p>
-//             <p style={styles.contactItem}>📍 Jakarta, Indonesia</p>
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* Bottom bar */}
-//       <div style={styles.bottomBar}>
-//         <div style={styles.bottomInner}>
-//           <p style={styles.copyright}>© {new Date().getFullYear()} Ecentio. All rights reserved.</p>
-//           <div style={styles.bottomLinks}>
-//             <a href="#" style={styles.bottomLink}>Privacy Policy</a>
-//             <span style={styles.dot}>·</span>
-//             <a href="#" style={styles.bottomLink}>Terms of Service</a>
-//             <span style={styles.dot}>·</span>
-//             <a href="#" style={styles.bottomLink}>Kebijakan Pengembalian</a>
-//           </div>
-//         </div>
-//       </div>
-//     </footer>
-//   );
-// }
-
-// const styles: { [key: string]: React.CSSProperties } = {
-//   footer: {
-//     background: "#1a2e3b",
-//     color: "#c8d8e0",
-//     fontFamily: "Georgia, 'Times New Roman', serif",
-//     marginTop: "0",
-//   },
-//   waveDivider: {
-//     lineHeight: 0,
-//     background: "white",
-//   },
-//   inner: {
-//     maxWidth: "1200px",
-//     margin: "0 auto",
-//     padding: "56px 40px 40px",
-//     display: "grid",
-//     gridTemplateColumns: "2fr 1fr 1fr 2fr",
-//     gap: "48px",
-//   },
-//   col: {
-//     display: "flex",
-//     flexDirection: "column",
-//   },
-//   brand: {
-//     fontSize: "32px",
-//     fontWeight: "bold",
-//     color: "#6bc1c6",
-//     letterSpacing: "2px",
-//     lineHeight: 1,
-//     marginBottom: "4px",
-//   },
-//   tagline: {
-//     fontSize: "12px",
-//     color: "#6bc1c6",
-//     letterSpacing: "3px",
-//     textTransform: "uppercase",
-//     marginBottom: "16px",
-//     margin: "0 0 16px 2px",
-//   },
-//   desc: {
-//     fontSize: "14px",
-//     lineHeight: "1.7",
-//     color: "#8aa8b8",
-//     marginBottom: "24px",
-//   },
-//   socials: {
-//     display: "flex",
-//     gap: "12px",
-//   },
-//   socialLink: {
-//     width: "36px",
-//     height: "36px",
-//     borderRadius: "50%",
-//     border: "1px solid #2e4a5c",
-//     display: "flex",
-//     alignItems: "center",
-//     justifyContent: "center",
-//     color: "#8aa8b8",
-//     textDecoration: "none",
-//     transition: "border-color 0.2s, color 0.2s",
-//   },
-//   colTitle: {
-//     fontSize: "11px",
-//     fontWeight: "600",
-//     letterSpacing: "3px",
-//     textTransform: "uppercase",
-//     color: "#6bc1c6",
-//     marginBottom: "20px",
-//     margin: "0 0 20px 0",
-//   },
-//   linkList: {
-//     listStyle: "none",
-//     padding: 0,
-//     margin: 0,
-//     display: "flex",
-//     flexDirection: "column",
-//     gap: "10px",
-//   },
-//   footerLink: {
-//     textDecoration: "none",
-//     color: "#8aa8b8",
-//     fontSize: "14px",
-//     transition: "color 0.2s",
-//   },
-//   newsletterDesc: {
-//     fontSize: "13px",
-//     color: "#8aa8b8",
-//     lineHeight: "1.6",
-//     marginBottom: "16px",
-//     margin: "0 0 16px 0",
-//   },
-//   form: {
-//     display: "flex",
-//     gap: "0",
-//     borderRadius: "6px",
-//     overflow: "hidden",
-//     border: "1px solid #2e4a5c",
-//   },
-//   input: {
-//     flex: 1,
-//     padding: "10px 14px",
-//     background: "#233d4e",
-//     border: "none",
-//     color: "#e0edf2",
-//     fontSize: "13px",
-//     outline: "none",
-//   },
-//   subscribeBtn: {
-//     padding: "10px 16px",
-//     background: "#6bc1c6",
-//     border: "none",
-//     color: "#1a2e3b",
-//     fontWeight: "bold",
-//     fontSize: "16px",
-//     cursor: "pointer",
-//   },
-//   successMsg: {
-//     fontSize: "12px",
-//     color: "#6bc1c6",
-//     marginTop: "8px",
-//     margin: "8px 0 0 0",
-//   },
-//   contactItem: {
-//     fontSize: "13px",
-//     color: "#8aa8b8",
-//     marginBottom: "8px",
-//     margin: "0 0 8px 0",
-//   },
-//   bottomBar: {
-//     borderTop: "1px solid #2e4a5c",
-//   },
-//   bottomInner: {
-//     maxWidth: "1200px",
-//     margin: "0 auto",
-//     padding: "18px 40px",
-//     display: "flex",
-//     alignItems: "center",
-//     justifyContent: "space-between",
-//   },
-//   copyright: {
-//     fontSize: "12px",
-//     color: "#4a6a7a",
-//     margin: 0,
-//   },
-//   bottomLinks: {
-//     display: "flex",
-//     alignItems: "center",
-//     gap: "10px",
-//   },
-//   bottomLink: {
-//     fontSize: "12px",
-//     color: "#4a6a7a",
-//     textDecoration: "none",
-//   },
-//   dot: {
-//     color: "#4a6a7a",
-//     fontSize: "12px",
-//   },
-// };
-
-import React from "react";
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["300", "400", "500"],
+});
 
 export default function Footer() {
   return (
-    <footer style={styles.footerContainer}>
-      {/* BAGIAN ATAS: Informasi Link */}
-      <div style={styles.topSection}>
-        {/* Kolom 1: Hubungi Kami */}
-        <div style={styles.column}>
-          <h4 style={styles.title}>Hubungi Kami</h4>
-          <p style={styles.boldText}>Jam Operasional</p>
-          <p style={styles.text}>Senin - Minggu : Jam 9:00 - 18:00 WIB (termasuk hari libur nasional)</p>
-          
-          <p style={{ ...styles.boldText, marginTop: "20px" }}>Layanan Pengaduan Konsumen</p>
-          <p style={styles.text}>PT Era Gaya Aktif / www.jdsports.id</p>
-          <p style={styles.text}>Call Center : 1500372</p>
-          <p style={styles.text}>WhatsApp : 0812 9077 7722</p>
-          <p style={styles.text}>Email : cs@jdsports.id</p>
-          
-          <p style={{ ...styles.text, marginTop: "15px", fontSize: "11px", lineHeight: "1.4" }}>
-            Direktorat Jenderal Perlindungan Konsumen dan Tertib Niaga<br />
-            Kementerian Perdagangan RI<br />
-            WhatsApp : +62853 1111 1010
-          </p>
+    <footer style={styles.footer}>
+      <div style={styles.container}>
+
+        <div style={styles.main}>
+          <div style={styles.col}>
+            <p style={styles.colTitle}>Kontak Kami</p>
+            <div style={styles.contactList}>
+              <div style={styles.contactRow}>
+                <span style={styles.contactLabel}>Jam Operasional</span>
+                <span style={styles.contactVal}>Senin – Minggu, 08.00 – 18.00 WIB</span>
+              </div>
+              <div style={styles.contactRow}>
+                <span style={styles.contactLabel}>Email</span>
+                
+                <a href="mailto:email@gmail.com" style={styles.contactLink}>email@gmail.com</a>
+              </div>
+              <div style={styles.contactRow}>
+                <span style={styles.contactLabel}>WhatsApp</span>
+
+                <a href="https://wa.me/6208xxxxxxxxxx" style={styles.contactLink} target="_blank" rel="noopener noreferrer">
+                  08xx-xxxx-xxxx
+                </a>
+              </div>
+              <div style={styles.contactRow}>
+                <span style={styles.contactLabel}>Alamat</span>
+                <span style={styles.contactVal}>Jl. Nama Jalan No. 1, Kota, Indonesia</span>
+              </div>
+            </div>
+          </div>
+
+          <div style={styles.colCenter}>
+            <div style={styles.logoBox}>
+              <span style={{ ...styles.logoText, ...cormorant.style }}>Store</span>
+            </div>
+            <p style={styles.ptName}>PT Nama Perusahaan</p>
+            <p style={styles.tagline}>Toko tanaman hias terpercaya untuk rumah dan kantor Anda.</p>
+          </div>
+
+          <div style={{ ...styles.col, alignItems: "flex-end" }}>
+            <p style={styles.colTitle}>Navigasi</p>
+            <nav style={styles.navList}>
+              <Link href="/" style={styles.navLink}>Home</Link>
+              <Link href="/products" style={styles.navLink}>All Products</Link>
+              <Link href="/about" style={styles.navLink}>About Us</Link>
+              <Link href="/customer-care" style={styles.navLink}>Customer Care</Link>
+            </nav>
+          </div>
         </div>
 
-        {/* Kolom 2: Shopping With JD */}
-        <div style={styles.column}>
-          <h4 style={styles.title}>Shopping With JD</h4>
-          <a href="#" style={styles.link}>Size Guide</a>
-          <a href="#" style={styles.link}>Find a Store</a>
-        </div>
+        <div style={styles.divider} />
 
-        {/* Kolom 3: Customer Care */}
-        <div style={styles.column}>
-          <h4 style={styles.title}>Customer Care</h4>
-          <a href="#" style={styles.link}>Delivery & Returns</a>
-          <a href="#" style={styles.link}>Payment Information</a>
-          <a href="#" style={styles.link}>Help & Contact Us</a>
-          <a href="#" style={styles.link}>Track My Order</a>
-          <a href="#" style={styles.link}>FAQ</a>
-          <a href="#" style={styles.link}>Beware of Scams</a>
-        </div>
-
-        {/* Kolom 4: Information */}
-        <div style={styles.column}>
-          <h4 style={styles.title}>Information</h4>
-          <a href="#" style={styles.link}>Career</a>
-          <a href="#" style={styles.link}>About Us</a>
-          <a href="#" style={styles.link}>JD Sports Fashion Plc</a>
-        </div>
-
-        {/* Kolom 5: Legal */}
-        <div style={styles.column}>
-          <h4 style={styles.title}>Legal</h4>
-          <a href="#" style={styles.link}>Terms & Conditions</a>
-          <a href="#" style={styles.link}>Privacy & Cookies</a>
-        </div>
-      </div>
-
-      <hr style={styles.divider} />
-
-      {/* BAGIAN BAWAH: Copyright & Pembayaran */}
-      <div style={styles.bottomSection}>
-        <div style={styles.copyrightArea}>
-          <p style={styles.text}>Visit our corporate website at www.jdplc.com</p>
-          <p style={styles.text}>Copyright © 2022 JD Sports All rights reserved.</p>
-        </div>
-
-        <div style={styles.paymentArea}>
-          <p style={{ ...styles.text, textAlign: "right", marginBottom: "10px" }}>Metode pembayaran yang tersedia</p>
-          <div style={styles.paymentGrid}>
-            {/* Placeholder untuk icon pembayaran, ganti dengan <img> asli nanti */}
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((i) => (
-              <div key={i} style={styles.paymentIconPlaceholder} />
-            ))}
+        <div style={styles.bottom}>
+          <p style={styles.copyright}>© 2025 PT Nama Perusahaan. All rights reserved.</p>
+          <div style={styles.socialRow}>
+            <a
+              href="https://shopee.co.id/namatoko"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={styles.socialBtn}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.borderColor = "#111"; (e.currentTarget as HTMLAnchorElement).style.color = "#111"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.borderColor = "#e0e0e0"; (e.currentTarget as HTMLAnchorElement).style.color = "#888"; }}
+            >
+              <img src="/shopee_logo.svg" width={14} height={14} alt="" aria-hidden="true" style={{ objectFit: "contain" }} />
+              Shopee
+            </a>
+            <a
+              href="https://www.tiktok.com/@namatoko"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={styles.socialBtn}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.borderColor = "#111"; (e.currentTarget as HTMLAnchorElement).style.color = "#111"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.borderColor = "#e0e0e0"; (e.currentTarget as HTMLAnchorElement).style.color = "#888"; }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.73a4.85 4.85 0 0 1-1.01-.04z"/>
+              </svg>
+              TikTok
+            </a>
+            <a
+              href="https://www.instagram.com/namatoko"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={styles.socialBtn}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.borderColor = "#111"; (e.currentTarget as HTMLAnchorElement).style.color = "#111"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.borderColor = "#e0e0e0"; (e.currentTarget as HTMLAnchorElement).style.color = "#888"; }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                <circle cx="12" cy="12" r="4"/>
+                <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor"/>
+              </svg>
+              Instagram
+            </a>
           </div>
         </div>
       </div>
@@ -370,76 +110,164 @@ export default function Footer() {
 }
 
 const styles: { [key: string]: React.CSSProperties } = {
-  footerContainer: {
+  footer: {
+    width: "100%",
     backgroundColor: "#fff",
-    padding: "60px 80px 40px 80px",
-    fontFamily: "Arial, sans-serif",
-    borderTop: "1px solid #eee",
+    borderTop: "0.5px solid #ebebeb",
+    marginTop: "auto",
   },
-  topSection: {
+  container: {
+    maxWidth: "1300px",
+    margin: "0 auto",
+    padding: "52px 32px 0",
+  },
+  main: {
     display: "grid",
-    gridTemplateColumns: "1.5fr 1fr 1fr 1fr 1fr",
-    gap: "20px",
-    marginBottom: "40px",
+    gridTemplateColumns: "1fr 1fr 1fr",
+    gap: "40px",
+    paddingBottom: "48px",
+    alignItems: "start",
   },
-  column: {
+
+  // column
+  col: {
     display: "flex",
     flexDirection: "column",
+    gap: "0",
   },
-  title: {
-    fontSize: "14px",
-    fontWeight: "bold",
-    marginBottom: "20px",
-    color: "#000",
-  },
-  boldText: {
-    fontSize: "13px",
-    fontWeight: "bold",
-    margin: "5px 0",
-    color: "#333",
-  },
-  text: {
-    fontSize: "13px",
-    color: "#555",
-    margin: "2px 0",
-    lineHeight: "1.6",
-  },
-  link: {
-    fontSize: "13px",
-    color: "#555",
-    textDecoration: "none",
-    margin: "5px 0",
-    transition: "color 0.2s",
-  },
-  divider: {
-    border: "none",
-    borderTop: "1px solid #eee",
-    margin: "20px 0",
-  },
-  bottomSection: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-end",
-  },
-  copyrightArea: {
-    flex: 1,
-  },
-  paymentArea: {
-    flex: 1,
+  colCenter: {
     display: "flex",
     flexDirection: "column",
-    alignItems: "flex-end",
-  },
-  paymentGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(6, 1fr)",
+    alignItems: "center",
     gap: "8px",
   },
-  paymentIconPlaceholder: {
-    width: "45px",
-    height: "25px",
-    backgroundColor: "#f5f5f5",
-    borderRadius: "4px",
-    border: "1px solid #ddd",
+  colTitle: {
+    fontSize: "9px",
+    fontWeight: 600,
+    letterSpacing: "0.18em",
+    textTransform: "uppercase" as const,
+    color: "#aaa",
+    marginBottom: "16px",
+    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+  },
+
+  // logo
+  logoBox: {
+    border: "0.5px solid #e0e0e0",
+    borderRadius: "8px",
+    width: "140px",
+    height: "52px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: "4px",
+  },
+  logoText: {
+    fontSize: "22px",
+    fontWeight: 400,
+    color: "#111",
+    letterSpacing: "0.04em",
+  },
+  ptName: {
+    fontSize: "11px",
+    color: "#aaa",
+    letterSpacing: "0.1em",
+    textTransform: "uppercase" as const,
+    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+    marginTop: "4px",
+  },
+  tagline: {
+    fontSize: "12px",
+    color: "#bbb",
+    textAlign: "center" as const,
+    lineHeight: 1.6,
+    marginTop: "10px",
+    maxWidth: "180px",
+    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+  },
+
+  // contact
+  contactList: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
+  },
+  contactRow: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "2px",
+  },
+  contactLabel: {
+    fontSize: "9px",
+    fontWeight: 600,
+    letterSpacing: "0.1em",
+    textTransform: "uppercase" as const,
+    color: "#ccc",
+    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+  },
+  contactVal: {
+    fontSize: "12px",
+    color: "#555",
+    lineHeight: 1.5,
+    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+  },
+  contactLink: {
+    fontSize: "12px",
+    color: "#555",
+    textDecoration: "none",
+    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+  },
+
+  // nav
+  navList: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-end",
+    gap: "8px",
+  },
+  navLink: {
+    fontSize: "12px",
+    color: "#888",
+    textDecoration: "none",
+    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+    letterSpacing: "0.04em",
+    transition: "color 0.15s ease",
+  },
+
+  // Bottom
+  divider: {
+    borderTop: "0.5px solid #ebebeb",
+  },
+  bottom: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "20px 0 24px",
+  },
+  copyright: {
+    fontSize: "11px",
+    color: "#ccc",
+    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+  },
+  socialRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+  },
+  socialBtn: {
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    fontSize: "11px",
+    color: "#888",
+    textDecoration: "none",
+    padding: "6px 12px",
+    borderWidth: "0.5px",
+    borderStyle: "solid",
+    borderColor: "#e0e0e0",
+    borderRadius: "20px",
+    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+    letterSpacing: "0.04em",
+    transition: "border-color 0.15s ease, color 0.15s ease",
   },
 };

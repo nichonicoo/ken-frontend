@@ -98,7 +98,7 @@ export async function getProductsAll(): Promise<Product[]> {
 
   const json: ProductGraphQLResponse = await res.json();
 
-  console.log("🔥 GRAPHQL RESULT:", JSON.stringify(json, null, 2));
+  // console.log("🔥 GRAPHQL RESULT:", JSON.stringify(json, null, 2));
 
   return json.data.products?.nodes || [];
 }
@@ -147,8 +147,8 @@ export async function getProductsByCategory(
   }
 
   const json: ProductGraphQLResponse = await res.json();
-  console.log("query search: ", query);
-  console.log("🔥 GRAPHQL RESULT:", JSON.stringify(json, null, 2));
+  // console.log("query search: ", query);
+  // console.log("🔥 GRAPHQL RESULT:", JSON.stringify(json, null, 2));
   return json.data.products?.nodes || [];
 }
 
@@ -198,36 +198,36 @@ type ProductDetail = {
   shortDescription?: string;
   onSale?: boolean;
   purchasable?: boolean;
-
   price?: string;
   regularPrice?: string;
   salePrice?: string;
   stockQuantity?: number;
   stockStatus: string;
-
+  averageRating:string;
   image?: {
     sourceUrl: string;
   } | null;
-
   galleryImages?: {
     nodes: {
       sourceUrl: string;
     }[];
   };
-
   productCategories?: {
     nodes: {
       name: string;
       slug: string;
     }[];
   };
-
   upsell?: {
     nodes: Product[];
   };
-
+  reviewCount: number;
   crossSell?: {
     nodes: Product[];
+  };
+  productCustomFields?: {
+    shopeeLink: string;
+    tiktokLink: string;
   };
 };
 
@@ -292,7 +292,13 @@ export async function getProductDetail(
               }
             }
           }
+          reviewCount
         }
+        productCustomFields{
+          shopeeLink
+          tiktokLink
+        }
+        averageRating
       }
     }
   `;
@@ -315,7 +321,7 @@ export async function getProductDetail(
 
   const json = await res.json();
 
-  console.log("🔥 GRAPHQL RESULT DETAIL PRODUCT:", JSON.stringify(json, null, 2));
+  // console.log("🔥 GRAPHQL RESULT DETAIL PRODUCT:", JSON.stringify(json, null, 2));
 
   if (json.errors) {
     console.error("GraphQL Error:", json.errors);
@@ -323,4 +329,83 @@ export async function getProductDetail(
   }
 
   return json.data.product;
+}
+
+type LatestProduct = {
+  id: string;
+  databaseId: number;
+  name: string;
+  slug: string;
+
+  onSale?: boolean;
+
+  price?: string;
+  regularPrice?: string;
+  salePrice?: string;
+  stockQuantity?: number;
+  stockStatus: string;
+
+  image?: {
+    sourceUrl: string;
+  } | null;
+
+  productCategories?: {
+    nodes: {
+      name: string;
+      slug: string;
+    }[];
+  };
+};
+
+export async function getLatestProduct(): Promise<LatestProduct[]>{
+  const query = `
+  query getLatestProduct {
+    products(
+      first: 10
+      where: {orderby: {field: DATE, order: DESC}, status: "publish", stockStatus: IN_STOCK}
+    ) {
+      nodes {
+        id
+        databaseId
+        name
+        slug
+        ... on SimpleProduct {
+          id
+          name
+          date
+          price(format: RAW)
+          onSale
+          regularPrice(format: RAW)
+          salePrice(format: RAW)
+          image {
+            sourceUrl
+          }
+        }
+      }
+    }
+  }
+  `;
+  const res = await fetch(API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ query }),
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch getLatestProducts()");
+  }
+  const json = await res.json();
+  // console.log(
+  //   "🔥 GRAPHQL RESULT LATEST PRODUCTS:",
+  //   JSON.stringify(json, null, 2)
+  // );
+
+  if (json.errors) {
+    console.error("GraphQL Error:", json.errors);
+    return [];
+  }
+  return json.data.products.nodes;
 }

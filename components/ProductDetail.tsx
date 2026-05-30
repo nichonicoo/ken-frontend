@@ -1,7 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
-import { addToCart } from "@/app/api/graphql/Transaction"
+import React, { useState, useRef } from "react";
+import { Cormorant_Garamond } from "next/font/google";
+import { addToCart } from "@/app/api/graphql/Transaction";
+
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
+});
 
 interface RelatedProduct {
   id: string;
@@ -26,75 +32,237 @@ interface ProductDetail {
   price?: string;
   regularPrice?: string;
   salePrice?: string;
+  averageRating: string;
   image?: { sourceUrl: string } | null;
   galleryImages?: { nodes: { sourceUrl: string }[] };
   productCategories?: { nodes: { name: string; slug: string }[] };
   upsell?: { nodes: RelatedProduct[] };
+  reviewCount: number;
   crossSell?: { nodes: RelatedProduct[] };
+  productCustomFields?: {
+    shopeeLink: string;
+    tiktokLink: string;
+  };
 }
 
-// ── Related Product Card ──────────────────────────────────────────
-function RelatedCard({ p }: { p: RelatedProduct }) {
-  const fmt = (val?: string) =>
-    val
-      ? new Intl.NumberFormat("id-ID", {
-          style: "currency",
-          currency: "IDR",
-          minimumFractionDigits: 0,
-        }).format(Number(val))
-      : "";
+// helpers
+const fmt = (val?: string) => {
+  if (!val) return "";
+  const num = parseFloat(val.replace(/[^0-9.]/g, ""));
+  if (isNaN(num)) return val;
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+  }).format(num);
+};
 
-  const displayPrice = p.onSale ? p.salePrice || p.price : p.price;
-  const discount =
-    p.onSale && p.regularPrice && p.salePrice
-      ? Math.round((1 - Number(p.salePrice) / Number(p.regularPrice)) * 100)
-      : null;
-
+// accordian
+function Accordion({ label, children }: { label: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
   return (
-    <a href={`/product/${p.slug}`} style={relatedStyles.card}>
-      <div style={relatedStyles.imgWrap}>
-        {p.image?.sourceUrl ? (
-          <img src={p.image.sourceUrl} alt={p.name} style={relatedStyles.img} />
-        ) : (
-          <div style={relatedStyles.noImg}>No Image</div>
-        )}
-      </div>
-      <div style={relatedStyles.info}>
-        <p style={relatedStyles.name}>{p.name}</p>
-        {p.onSale && p.regularPrice ? (
-          <>
-            <p style={relatedStyles.regularPrice}>{fmt(p.regularPrice)}</p>
-            <p style={relatedStyles.salePrice}>
-              Now {fmt(displayPrice)}{discount ? ` Save ${discount}%` : ""}
-            </p>
-          </>
-        ) : (
-          <p style={relatedStyles.normalPrice}>{fmt(displayPrice)}</p>
-        )}
-      </div>
-    </a>
-  );
-}
-
-// ── Related Section ───────────────────────────────────────────────
-function RelatedSection({ title, products }: { title: string; products: RelatedProduct[] }) {
-  return (
-    <div style={relatedStyles.section}>
-      <h2 style={relatedStyles.sectionTitle}>{title}</h2>
-      {products.length === 0 ? (
-        <p style={relatedStyles.empty}>Tidak ada produk terkait.</p>
-      ) : (
-        <div style={relatedStyles.grid}>
-          {products.map((p) => (
-            <RelatedCard key={p.id} p={p} />
-          ))}
+    <div style={{ borderBottom: "0.5px solid #ebebeb" }}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        style={{
+          width: "100%", display: "flex", justifyContent: "space-between",
+          alignItems: "center", padding: "15px 0",
+          background: "none", border: "none", cursor: "pointer",
+        }}
+      >
+        <span style={{
+          fontSize: 10, fontWeight: 600, letterSpacing: "0.14em",
+          textTransform: "uppercase", color: "#111",
+          fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+        }}>
+          {label}
+        </span>
+        <svg
+          width="13" height="13" viewBox="0 0 24 24" fill="none"
+          stroke="#bbb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+          style={{ transform: open ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.22s ease", flexShrink: 0 }}
+        >
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </button>
+      {open && (
+        <div style={{ paddingBottom: 18 }}>
+          {children}
         </div>
       )}
     </div>
   );
 }
 
-// ── Main Component ────────────────────────────────────────────────
+// related card
+function RelatedCard({ p }: { p: RelatedProduct }) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <a href={`/products/${p.slug}`} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+      <div onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
+        <div style={{
+          position: "relative", background: "#f5f3ef",
+          borderRadius: 12, aspectRatio: "1/1",
+          overflow: "hidden", marginBottom: 10,
+        }}>
+          {p.onSale && (
+            <span style={{
+              position: "absolute", top: 10, left: 10, zIndex: 2,
+              background: "#111", color: "#fff", fontSize: 9,
+              fontWeight: 700, letterSpacing: "0.12em",
+              padding: "3px 8px", borderRadius: 2,
+              fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+            }}>SALE</span>
+          )}
+          {p.image?.sourceUrl ? (
+            <img
+              src={p.image.sourceUrl} alt={p.name}
+              style={{
+                width: "100%", height: "100%", objectFit: "cover", display: "block",
+                transform: hovered ? "scale(1.04)" : "scale(1)",
+                transition: "transform 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+              }}
+              loading="lazy"
+            />
+          ) : (
+            <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <span style={{ fontSize: 11, color: "#bbb", fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}>No Image</span>
+            </div>
+          )}
+        </div>
+        <p style={{
+          fontSize: 11, fontWeight: 600, color: "#1a1a1a", lineHeight: 1.5,
+          fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+          letterSpacing: "0.06em", textTransform: "uppercase",
+          display: "-webkit-box", WebkitLineClamp: 2,
+          WebkitBoxOrient: "vertical", overflow: "hidden", margin: "0 0 4px",
+        }}>{p.name}</p>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+          {p.onSale && p.regularPrice ? (
+            <>
+              <span style={{ fontSize: 11, color: "#bbb", textDecoration: "line-through", fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}>{fmt(p.regularPrice)}</span>
+              <span style={{ fontSize: 12, fontWeight: 500, color: "#111", fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}>{fmt(p.salePrice)}</span>
+            </>
+          ) : (
+            <span style={{ fontSize: 12, fontWeight: 400, color: "#111", fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}>{fmt(p.price)}</span>
+          )}
+        </div>
+      </div>
+    </a>
+  );
+}
+
+// related carousel
+const GAP = 16;
+const STEP = 4;
+
+function RelatedCarousel({ title, products }: { title: string; products: RelatedProduct[] }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const [arrowHover, setArrowHover] = useState<"left" | "right" | null>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+
+  const getCardPxWidth = (): number => {
+    const track = trackRef.current;
+    if (!track) return 0;
+    return (track.offsetWidth - GAP * 3) / 4;
+  };
+
+  const maxIndex = Math.max(0, products.length - STEP);
+  const goNext = () => setCurrentIndex((p) => Math.min(p + STEP, maxIndex));
+  const goPrev = () => setCurrentIndex((p) => Math.max(p - STEP, 0));
+  const translateX = -((getCardPxWidth() + GAP) * currentIndex);
+
+  if (products.length === 0) return null;
+
+  return (
+    <div>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 16, marginBottom: 28 }}>
+        <h2
+          className={cormorant.className}
+          style={{ fontSize: 30, fontWeight: 400, color: "#111", margin: 0, letterSpacing: "0.01em", lineHeight: 1 }}
+        >
+          {title}
+        </h2>
+        <span style={{
+          fontSize: 10, fontWeight: 500, color: "#aaa",
+          letterSpacing: "0.12em", textTransform: "uppercase",
+          fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+        }}>
+          {products.length} items
+        </span>
+      </div>
+
+      <div
+        style={{ position: "relative" }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <div style={{ overflow: "hidden" }}>
+          <div
+            ref={trackRef}
+            style={{
+              display: "grid",
+              gridTemplateColumns: `repeat(${products.length}, calc((100% - ${GAP * 3}px) / 4))`,
+              gap: GAP,
+              transform: `translateX(${translateX}px)`,
+              transition: "transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+              willChange: "transform",
+            }}
+          >
+            {products.map((p) => <RelatedCard key={p.id} p={p} />)}
+          </div>
+        </div>
+
+        {(["left", "right"] as const).map((dir) => {
+          const isLeft = dir === "left";
+          const disabled = isLeft ? currentIndex === 0 : currentIndex >= maxIndex;
+          const visible = isHovered && !disabled;
+          return (
+            <button
+              key={dir}
+              onClick={isLeft ? goPrev : goNext}
+              disabled={disabled}
+              aria-label={isLeft ? "Previous" : "Next"}
+              onMouseEnter={() => setArrowHover(dir)}
+              onMouseLeave={() => setArrowHover(null)}
+              style={{
+                position: "absolute", top: "38%",
+                [isLeft ? "left" : "right"]: -18,
+                transform: "translateY(-50%)",
+                zIndex: 10, width: 36, height: 36, borderRadius: "50%",
+                background: arrowHover === dir ? "#111" : "#fff",
+                color: arrowHover === dir ? "#fff" : "#111",
+                border: "1px solid #e0e0e0",
+                boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
+                cursor: disabled ? "not-allowed" : "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                opacity: visible ? 1 : 0,
+                pointerEvents: visible ? "auto" : "none",
+                transition: "opacity 0.2s ease, background 0.18s ease, color 0.18s ease",
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                {isLeft ? <polyline points="15 18 9 12 15 6" /> : <polyline points="9 18 15 12 9 6" />}
+              </svg>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// icon
+function TikTokIcon() {
+  return <img src="/tiktok_logo.svg" alt="TikTok" width={16} height={16} style={{ objectFit: "contain" }} />;
+}
+function ShopeeIcon() {
+  return <img src="/shopee_logo.svg" alt="Shopee" width={16} height={16} style={{ objectFit: "contain" }} />;
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
 export default function ProductDetails({ product }: { product: ProductDetail }) {
   const allImages = [
     product.image?.sourceUrl,
@@ -103,45 +271,40 @@ export default function ProductDetails({ product }: { product: ProductDetail }) 
 
   const [activeImg, setActiveImg] = useState(0);
   const [qty, setQty] = useState(1);
-  const [wishlist, setWishlist] = useState(false);
-  const [detailOpen, setDetailOpen] = useState(true);
-  const [shippingOpen, setShippingOpen] = useState(false);
+  const [tiktokHovered, setTiktokHovered] = useState(false);
+  const [shopeeHovered, setShopeeHovered] = useState(false);
+  const [addBtnHovered, setAddBtnHovered] = useState(false);
+  // const [buyBtnHovered, setBuyBtnHovered] = useState(false);
 
   const category = product.productCategories?.nodes?.[0];
-
-  const fmt = (val?: string) =>
-    val
-      ? new Intl.NumberFormat("id-ID", {
-          style: "currency",
-          currency: "IDR",
-          minimumFractionDigits: 0,
-        }).format(Number(val))
-      : "";
-
   const displayPrice = product.onSale ? product.salePrice || product.price : product.price;
   const displayRegular = product.onSale ? product.regularPrice : undefined;
-
   const upsellProducts = product.upsell?.nodes || [];
   const crossSellProducts = product.crossSell?.nodes || [];
   const hasRelated = upsellProducts.length > 0 || crossSellProducts.length > 0;
+  const rating = parseFloat(product.averageRating || "0");
+  const ratingRounded = Math.round(rating);
 
   return (
     <div style={styles.page}>
-      {/* BREADCRUMB */}
+
+      {/* Breadcrumb */}
       <nav style={styles.breadcrumb}>
         <a href="/" style={styles.breadLink}>Home</a>
-        <span style={styles.breadSep}>/</span>
+        <span style={styles.breadSep}>›</span>
         {category && (
           <>
             <a href={`/category/${category.slug}`} style={styles.breadLink}>{category.name}</a>
-            <span style={styles.breadSep}>/</span>
+            <span style={styles.breadSep}>›</span>
           </>
         )}
         <span style={styles.breadCurrent}>{product.name}</span>
       </nav>
 
+      {/* Main layout */}
       <div style={styles.layout}>
-        {/* ── LEFT: GALLERY ── */}
+
+        {/* Gallery */}
         <div style={styles.gallerySection}>
           <div style={styles.thumbCol}>
             {allImages.map((src, i) => (
@@ -154,310 +317,309 @@ export default function ProductDetails({ product }: { product: ProductDetail }) 
               </button>
             ))}
           </div>
-
           <div style={styles.mainImgWrap}>
-            <button
-              onClick={() => setWishlist((w) => !w)}
-              style={{ ...styles.wishFloatBtn, ...(wishlist ? styles.wishFloatActive : {}) }}
-              aria-label="Wishlist"
-            >
-              {wishlist ? "♥" : "♡"}
-            </button>
             {product.onSale && <div style={styles.saleBadge}>SALE</div>}
             <img src={allImages[activeImg]} alt={product.name} style={styles.mainImg} />
           </div>
         </div>
 
-        {/* ── RIGHT: INFO ── */}
+        {/* Info col */}
         <div style={styles.infoCol}>
+
           <p style={styles.categoryLabel}>{category?.name?.toUpperCase()}</p>
-          <h1 style={styles.productName}>{product.name}</h1>
+
+          <h1 className={cormorant.className} style={styles.productName}>
+            {product.name}
+          </h1>
 
           <div style={styles.priceRow}>
-            <span style={{ ...styles.price, ...(product.onSale ? styles.priceOnSale : {}) }}>
-              {fmt(displayPrice)}
-            </span>
+            <span style={styles.price}>{fmt(displayPrice)}</span>
             {product.onSale && displayRegular && (
               <span style={styles.strikePrice}>{fmt(displayRegular)}</span>
             )}
           </div>
 
           <div style={styles.ratingRow}>
-            <span style={styles.stars}>★★★★★</span>
-            <span style={styles.ratingNum}>4.8</span>
-            <span style={styles.ratingCount}>(1.122 ulasan)</span>
-            <span style={styles.ratingDot}>·</span>
-            <span style={styles.soldCount}>1.122 terjual</span>
+            <span style={styles.stars}>
+              {"★".repeat(ratingRounded)}{"☆".repeat(5 - ratingRounded)}
+            </span>
+            <span style={styles.ratingNum}>{rating.toFixed(1)}</span>
+            <span style={styles.ratingCountBtn}>
+              ({product.reviewCount} ulasan)
+            </span>
           </div>
 
-          <div style={styles.shippingBanner}>
-            <span style={styles.shippingIcon}>🚚</span>
-            <div>
-              <p style={styles.shippingTitle}>GRATIS ONGKIR ke seluruh Indonesia</p>
-              <p style={styles.shippingLink}>Cek opsi pengiriman lainnya</p>
-            </div>
+          <div style={styles.divider} />
+
+          {/* Trust badges */}
+          <div style={styles.trustRow}>
+            {[
+              // { icon: "🚚", text: "Gratis ongkir seluruh Indonesia" },
+              { icon: "🛡️", text: "Garansi 7 hari retur" },
+              { icon: "✓",  text: "100% produk original" },
+            ].map(({ icon, text }) => (
+              <div key={text} style={styles.trustItem}>
+                <span style={styles.trustIcon}>{icon}</span>
+                <span style={styles.trustTxt}>{text}</span>
+              </div>
+            ))}
           </div>
 
+          <div style={styles.divider} />
+
+          {/* Qty + Add to cart */}
           <div style={styles.cartRow}>
             <div style={styles.qtyWrap}>
               <button style={styles.qtyBtn} onClick={() => setQty((q) => Math.max(1, q - 1))}>−</button>
               <span style={styles.qtyNum}>{qty}</span>
               <button style={styles.qtyBtn} onClick={() => setQty((q) => q + 1)}>+</button>
             </div>
-            <button style={styles.addBtn}>TAMBAH KE KERANJANG</button>
             <button
-              onClick={() => setWishlist((w) => !w)}
-              style={{ ...styles.wishBtnSide, ...(wishlist ? styles.wishBtnActive : {}) }}
-            >
-              {wishlist ? "♥" : "♡"}
-            </button>
-          </div>
-
-          <button style={styles.buyNowBtn} onClick={
-            async () => {
-                try{
-                    await addToCart(product.databaseId, qty)
-                    alert("added to cart")
-                } catch(e){
-                    console.error
-                }
+              style={{ ...styles.addBtn, ...(addBtnHovered ? styles.addBtnHover : {}) }}
+              onMouseEnter={() => setAddBtnHovered(true)}
+              onMouseLeave={() => setAddBtnHovered(false)}
+              onClick={
+              async () => {
+                  try{
+                      await addToCart(product.databaseId, qty)
+                      alert("added to cart")
+                  } catch(e){
+                      console.error
+                  }
+              }
             }
-          }>BELI SEKARANG</button>
-
-          <div style={styles.divider} />
-
-          <div style={styles.accordion}>
-            <button style={styles.accordionHeader} onClick={() => setDetailOpen((o) => !o)}>
-              <span style={styles.accordionTitle}>DETAIL PRODUK</span>
-              <span style={{ transition: "transform .2s", display: "inline-block", transform: detailOpen ? "rotate(180deg)" : "none" }}>▾</span>
+            >
+              TAMBAH KE KERANJANG
             </button>
-            {detailOpen && (
-              <div
-                style={styles.accordionBody}
-                dangerouslySetInnerHTML={{ __html: product.description || product.shortDescription || "" }}
-              />
-            )}
           </div>
 
-          <div style={styles.accordion}>
-            <button style={styles.accordionHeader} onClick={() => setShippingOpen((o) => !o)}>
-              <span style={styles.accordionTitle}>PENGIRIMAN & PENGEMBALIAN</span>
-              <span style={{ transition: "transform .2s", display: "inline-block", transform: shippingOpen ? "rotate(180deg)" : "none" }}>▾</span>
-            </button>
-            {shippingOpen && (
-              <div style={styles.accordionBody}>
-                <p>Pengiriman gratis untuk semua pesanan. Estimasi tiba 2–5 hari kerja.</p>
-                <p style={{ marginTop: "8px" }}>Pengembalian barang dapat dilakukan dalam 30 hari setelah produk diterima.</p>
+          {/* marketplace */}
+          <p style={styles.marketplaceLabel}>Atau beli di marketplace:</p>
+          <div style={styles.marketplaceRow}>
+            <a
+              href={product.productCustomFields?.tiktokLink}
+              target="_blank" rel="noopener noreferrer"
+              style={{ ...styles.marketplaceBtn, ...(tiktokHovered ? styles.mpTiktokHover : {}) }}
+              onMouseEnter={() => setTiktokHovered(true)}
+              onMouseLeave={() => setTiktokHovered(false)}
+            >
+              <TikTokIcon /> TikTok Shop
+            </a>
+            <a
+              href={product.productCustomFields?.shopeeLink}
+              target="_blank" rel="noopener noreferrer"
+              style={{ ...styles.marketplaceBtn, ...(shopeeHovered ? styles.mpShopeeHover : {}) }}
+              onMouseEnter={() => setShopeeHovered(true)}
+              onMouseLeave={() => setShopeeHovered(false)}
+            >
+              <ShopeeIcon /> Shopee
+            </a>
+          </div>
+
+          <div style={{ ...styles.divider, marginTop: 20 }} />
+
+          {/* Accordions */}
+          <Accordion label="Detail Produk">
+            <div
+              style={{ fontSize: 13, color: "#666", lineHeight: 1.85, fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}
+              dangerouslySetInnerHTML={{ __html: product.description || product.shortDescription || "<p>Tidak ada deskripsi produk.</p>" }}
+            />
+          </Accordion>
+
+          <Accordion label="Pengiriman & Pengembalian">
+            <div style={{ fontSize: 13, color: "#666", lineHeight: 1.85, fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", display: "flex", flexDirection: "column", gap: 16 }}>
+              <div>
+                <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#111", marginBottom: 8, fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}>Pengiriman</p>
+                <p>Gratis ongkir ke seluruh Indonesia. Estimasi tiba 2–5 hari kerja setelah pesanan dikonfirmasi.</p>
               </div>
-            )}
-          </div>
+              <div>
+                <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#111", marginBottom: 8, fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}>Pengembalian</p>
+                <p>Pengembalian barang dapat dilakukan dalam 7 hari setelah produk diterima, dengan kondisi produk masih dalam keadaan semula.</p>
+              </div>
+            </div>
+          </Accordion>
+
+          <Accordion label={`Ulasan (${product.reviewCount})`}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 16 }}>
+              <span className={cormorant.className} style={{ fontSize: 40, fontWeight: 400, color: "#111", lineHeight: 1 }}>
+                {rating.toFixed(1)}
+              </span>
+              <div>
+                <div style={{ color: "#d4a017", fontSize: 13, letterSpacing: "2px" }}>
+                  {"★".repeat(ratingRounded)}{"☆".repeat(5 - ratingRounded)}
+                </div>
+                <p style={{ fontSize: 11, color: "#aaa", fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", marginTop: 3 }}>
+                  dari {product.reviewCount} ulasan
+                </p>
+              </div>
+            </div>
+            <p style={{ fontSize: 13, color: "#aaa", fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}>
+              Belum ada ulasan yang ditampilkan.
+            </p>
+          </Accordion>
         </div>
       </div>
 
-      {/* ── UPSELL & CROSS SELL ── */}
+      {/* related */}
       {hasRelated && (
-        <div style={relatedStyles.wrapper}>
-          <div style={relatedStyles.divider} />
+        <div style={{ marginTop: 80, borderTop: "1px solid #ebebeb", paddingTop: 64 }}>
           {upsellProducts.length > 0 && (
-            <RelatedSection title="Produk Terkait" products={upsellProducts} />
+            <RelatedCarousel title="Produk Terkait" products={upsellProducts} />
           )}
           {crossSellProducts.length > 0 && (
-            <RelatedSection title="Sering Dibeli Bersama" products={crossSellProducts} />
+            <RelatedCarousel title="Sering Dibeli Bersama" products={crossSellProducts} />
           )}
         </div>
       )}
-
-      {/* STICKY BOTTOM BAR */}
-      <div style={styles.stickyBar}>
-        <div style={styles.stickyLeft}>
-          <img src={allImages[0]} alt={product.name} style={styles.stickyThumb} />
-          <div>
-            <p style={styles.stickyName}>{product.name}</p>
-            <p style={styles.stickyCategory}>{category?.name}</p>
-          </div>
-        </div>
-        <div style={styles.stickyRight}>
-          <div style={styles.stickyPriceWrap}>
-            <span style={{ ...styles.stickyPrice, ...(product.onSale ? styles.priceOnSale : {}) }}>
-              {fmt(displayPrice)}
-            </span>
-            {product.onSale && displayRegular && (
-              <span style={styles.stickyStrike}>{fmt(displayRegular)}</span>
-            )}
-          </div>
-          <button style={styles.stickyBuyBtn}>BELI SEKARANG</button>
-          {/* <button style={styles.stickyCartBtn}>TAMBAH KE KERANJANG</button> */}
-          <button style={styles.stickyCartBtn} onClick={
-            async () => {
-                try{
-                    await addToCart(product.databaseId, qty)
-                    alert("added to cart")
-                } catch(e){
-                    console.error
-                }
-            }
-          }>TAMBAH KE KERANJANG</button>
-        </div>
-      </div>
     </div>
   );
 }
 
-// ── Main styles ───────────────────────────────────────────────────
+// style
 const styles: { [key: string]: React.CSSProperties } = {
   page: {
-    maxWidth: "1300px",
-    margin: "0 auto",
-    padding: "100px 24px 120px",
+    maxWidth: "1300px", margin: "0 auto",
+    padding: "0px 32px 35px",
     fontFamily: "'Helvetica Neue', Arial, sans-serif",
     backgroundColor: "#fff",
   },
-  breadcrumb: { display: "flex", alignItems: "center", gap: "6px", marginBottom: "28px", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px" },
+  breadcrumb: {
+    display: "flex", alignItems: "center", gap: "6px",
+    marginBottom: "32px", fontSize: "11px",
+    textTransform: "uppercase", letterSpacing: "0.1em",
+  },
   breadLink: { color: "#999", textDecoration: "none" },
-  breadSep: { color: "#ddd" },
-  breadCurrent: { color: "#111", fontWeight: 700 },
-  layout: { display: "flex", gap: "52px", alignItems: "flex-start" },
-  gallerySection: { flex: 1, display: "flex", gap: "12px" },
+  breadSep: { color: "#ccc", fontSize: "13px" },
+  breadCurrent: { color: "#111", fontWeight: 600 },
+  layout: { display: "flex", gap: "64px", alignItems: "flex-start" },
+  gallerySection: {
+    flex: 1, display: "flex", gap: "12px",
+    position: "sticky", top: "32px",
+  },
   thumbCol: { display: "flex", flexDirection: "column", gap: "8px", width: "72px", flexShrink: 0 },
-  thumb: { width: "72px", height: "72px", border: "1px solid #e0e0e0", padding: "4px", cursor: "pointer", background: "#fafafa", borderRadius: "2px", boxSizing: "border-box" },
-  thumbActive: { border: "2px solid #111" },
+  thumb: {
+    width: "72px", height: "72px", border: "1px solid #e0e0e0",
+    padding: "4px", cursor: "pointer", background: "transparent",
+    borderRadius: "4px", boxSizing: "border-box",
+    transition: "border-color 0.15s ease",
+  },
+  thumbActive: { border: "1.5px solid #111" },
   thumbImg: { width: "100%", height: "100%", objectFit: "contain" },
-  mainImgWrap: { flex: 1, position: "relative", background: "#f6f6f6", aspectRatio: "4/5", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", borderRadius: "2px" },
-  mainImg: { width: "80%", height: "80%", objectFit: "contain" },
-  wishFloatBtn: { position: "absolute", top: "16px", right: "16px", background: "white", border: "1px solid #e0e0e0", borderRadius: "50%", width: "40px", height: "40px", fontSize: "18px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2, color: "#bbb", boxShadow: "0 2px 8px rgba(0,0,0,0.08)" },
-  wishFloatActive: { color: "#e53e3e", borderColor: "#e53e3e" },
-  saleBadge: { position: "absolute", top: "16px", left: "16px", background: "#e53e3e", color: "white", fontSize: "10px", fontWeight: 800, padding: "4px 10px", letterSpacing: "1px", zIndex: 2, borderRadius: "2px" },
-  infoCol: { width: "420px", flexShrink: 0, display: "flex", flexDirection: "column" },
-  categoryLabel: { fontSize: "11px", fontWeight: 700, color: "#6bc1c6", letterSpacing: "2px", margin: "0 0 6px" },
-  productName: { fontSize: "24px", fontWeight: 900, color: "#111", margin: "0 0 16px", lineHeight: 1.2, textTransform: "uppercase" },
-  priceRow: { display: "flex", alignItems: "center", gap: "12px", marginBottom: "10px" },
-  price: { fontSize: "26px", fontWeight: 900, color: "#111" },
-  priceOnSale: { color: "#e53e3e" },
-  strikePrice: { fontSize: "16px", color: "#aaa", textDecoration: "line-through", fontWeight: 400 },
-  ratingRow: { display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", marginBottom: "20px" },
-  stars: { color: "#FFD700", fontSize: "14px" },
-  ratingNum: { fontWeight: 700, color: "#111" },
-  ratingCount: { color: "#6bc1c6", cursor: "pointer", textDecoration: "underline" },
-  ratingDot: { color: "#ccc" },
-  soldCount: { color: "#888" },
-  shippingBanner: { display: "flex", alignItems: "center", gap: "12px", padding: "12px 16px", border: "1px solid #e8e8e8", background: "#fafafa", marginBottom: "24px", borderRadius: "4px" },
-  shippingIcon: { fontSize: "22px" },
-  shippingTitle: { fontSize: "11px", fontWeight: 700, letterSpacing: "0.5px", margin: 0 },
-  shippingLink: { fontSize: "10px", color: "#6bc1c6", textDecoration: "underline", cursor: "pointer", margin: "2px 0 0" },
-  cartRow: { display: "flex", gap: "8px", marginBottom: "10px" },
-  qtyWrap: { display: "flex", alignItems: "center", border: "1px solid #e0e0e0", borderRadius: "2px", overflow: "hidden", height: "52px" },
-  qtyBtn: { width: "36px", height: "100%", border: "none", background: "white", fontSize: "18px", cursor: "pointer", color: "#333" },
-  qtyNum: { width: "32px", textAlign: "center", fontWeight: 700, fontSize: "14px" },
-  addBtn: { flex: 1, height: "52px", background: "#6bc1c6", color: "white", border: "none", fontWeight: 900, fontSize: "12px", letterSpacing: "1px", cursor: "pointer", borderRadius: "2px" },
-  wishBtnSide: { width: "52px", height: "52px", border: "1px solid #e0e0e0", background: "white", fontSize: "20px", cursor: "pointer", borderRadius: "2px", color: "#bbb", display: "flex", alignItems: "center", justifyContent: "center" },
-  wishBtnActive: { color: "#e53e3e", borderColor: "#e53e3e" },
-  buyNowBtn: { width: "100%", height: "52px", background: "#111", color: "white", border: "none", fontWeight: 900, fontSize: "12px", letterSpacing: "1.5px", cursor: "pointer", marginBottom: "24px", borderRadius: "2px" },
-  divider: { borderTop: "1px solid #e8e8e8" },
-  accordion: { borderBottom: "1px solid #e8e8e8" },
-  accordionHeader: { width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 0", background: "none", border: "none", cursor: "pointer", fontSize: "11px", fontWeight: 700, letterSpacing: "2px" },
-  accordionTitle: { color: "#111" },
-  accordionBody: { fontSize: "13px", color: "#555", lineHeight: 1.7, paddingBottom: "16px" },
-  stickyBar: { position: "fixed", bottom: 0, left: 0, right: 0, background: "white", borderTop: "1px solid #e8e8e8", padding: "12px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", zIndex: 100, boxShadow: "0 -4px 20px rgba(0,0,0,0.06)" },
-  stickyLeft: { display: "flex", alignItems: "center", gap: "12px" },
-  stickyThumb: { width: "48px", height: "48px", objectFit: "contain", background: "#f6f6f6", borderRadius: "2px" },
-  stickyName: { fontSize: "13px", fontWeight: 700, margin: 0, color: "#111" },
-  stickyCategory: { fontSize: "11px", color: "#6bc1c6", margin: "2px 0 0", fontWeight: 600 },
-  stickyRight: { display: "flex", alignItems: "center", gap: "10px" },
-  stickyPriceWrap: { display: "flex", flexDirection: "column", alignItems: "flex-end", marginRight: "8px" },
-  stickyPrice: { fontSize: "20px", fontWeight: 900, color: "#111" },
-  stickyStrike: { fontSize: "11px", color: "#aaa", textDecoration: "line-through" },
-  stickyBuyBtn: { height: "42px", padding: "0 24px", background: "#111", color: "white", border: "none", fontWeight: 800, fontSize: "11px", letterSpacing: "1px", cursor: "pointer", borderRadius: "2px" },
-  stickyCartBtn: { height: "42px", padding: "0 24px", background: "#6bc1c6", color: "white", border: "none", fontWeight: 800, fontSize: "11px", letterSpacing: "1px", cursor: "pointer", borderRadius: "2px" },
+  mainImgWrap: {
+    flex: 1, position: "relative", background: "transparent",
+    border: "1px solid #111",
+    aspectRatio: "1/1", display: "flex", alignItems: "center",
+    justifyContent: "center", overflow: "hidden", borderRadius: "4px",
+    maxWidth: "700px"
+  },
+  mainImg: { width: "65%", height: "65%", objectFit: "contain" },
+  saleBadge: {
+    position: "absolute", top: "16px", left: "16px",
+    background: "#111", color: "white", fontSize: "9px",
+    fontWeight: 700, padding: "3px 10px", letterSpacing: "0.12em",
+    zIndex: 2, borderRadius: "2px",
+    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+  },
+  infoCol: { width: "400px", flexShrink: 0, display: "flex", flexDirection: "column" },
+  categoryLabel: {
+    fontSize: "10px", fontWeight: 600, color: "#aaa",
+    letterSpacing: "0.16em", margin: "0 0 8px",
+    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+    textTransform: "uppercase",
+  },
+  productName: {
+    fontSize: "34px", fontWeight: 400, color: "#111",
+    margin: "0 0 16px", lineHeight: 1.1, letterSpacing: "0.01em",
+  },
+  priceRow: { display: "flex", alignItems: "baseline", gap: "12px", marginBottom: "8px" },
+  price: {
+    fontSize: "22px", fontWeight: 500, color: "#111",
+    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+  },
+  strikePrice: {
+    fontSize: "14px", color: "#bbb", textDecoration: "line-through",
+    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+  },
+  ratingRow: { display: "flex", alignItems: "center", gap: "6px", marginBottom: "20px" },
+  stars: { color: "#d4a017", fontSize: "13px", letterSpacing: "1px" },
+  ratingNum: {
+    fontSize: "12px", fontWeight: 600, color: "#111",
+    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+  },
+  ratingCountBtn: {
+    fontSize: "12px", color: "#6bc1c6",
+    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+    background: "none", border: "none", cursor: "pointer",
+    padding: 0, textDecoration: "underline",
+  },
+  divider: { border: "none", borderTop: "0.5px solid #ebebeb", margin: "16px 0" },
+  trustRow: { display: "flex", gap: "8px" },
+  trustItem: {
+    flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
+    gap: "5px", padding: "12px 8px",
+    background: "#fafafa", borderRadius: "6px",
+    border: "0.5px solid #f0f0f0",
+  },
+  trustIcon: { fontSize: "16px" },
+  trustTxt: {
+    fontSize: "10px", color: "#888", textAlign: "center",
+    lineHeight: 1.4, fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+  },
+  cartRow: { display: "flex", gap: "8px", marginBottom: "8px" },
+  qtyWrap: {
+    display: "flex", alignItems: "center",
+    border: "0.5px solid #e0e0e0", borderRadius: "4px",
+    overflow: "hidden", height: "50px",
+  },
+  qtyBtn: {
+    width: "36px", height: "100%", border: "none",
+    background: "white", fontSize: "18px", cursor: "pointer", color: "#333",
+  },
+  qtyNum: {
+    width: "32px", textAlign: "center", fontWeight: 600,
+    fontSize: "14px", fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+  },
+  addBtn: {
+    flex: 1, height: "50px", background: "#111", color: "white",
+    border: "none", fontWeight: 600, fontSize: "10px",
+    letterSpacing: "0.12em", cursor: "pointer", borderRadius: "4px",
+    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+    transition: "background 0.2s ease",
+  },
+  addBtnHover: { background: "#333" },
+  buyNowBtn: {
+    width: "100%", height: "50px", background: "transparent",
+    color: "#111", border: "0.5px solid #111",
+    fontWeight: 600, fontSize: "10px", letterSpacing: "0.12em",
+    cursor: "pointer", marginBottom: "16px", borderRadius: "4px",
+    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+    transition: "background 0.2s ease, color 0.2s ease",
+  },
+  buyNowBtnHover: { background: "#111", color: "#fff" },
+  marketplaceLabel: {
+    fontSize: "10px", color: "#aaa", letterSpacing: "0.08em", marginBottom: "8px",
+    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", textTransform: "uppercase",
+  },
+  marketplaceRow: { display: "flex", gap: "8px", marginBottom: "4px" },
+  marketplaceBtn: {
+    flex: 1, height: "40px", display: "flex", alignItems: "center",
+    justifyContent: "center", gap: "7px",
+    border: "0.5px solid #e0e0e0", background: "#fff",
+    color: "#555", fontWeight: 500, fontSize: "11px", letterSpacing: "0.06em",
+    borderRadius: "4px", textDecoration: "none",
+    transition: "background 0.18s ease, color 0.18s ease, border-color 0.18s ease",
+    cursor: "pointer", whiteSpace: "nowrap",
+    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+  },
+  mpTiktokHover: { background: "#111", color: "#fff", borderColor: "#111" },
+  mpShopeeHover: { background: "#ee4d2d", color: "#fff", borderColor: "#ee4d2d" },
+  drawerTrigger: {
+    width: "100%", display: "flex", justifyContent: "space-between",
+    alignItems: "center", padding: "15px 0",
+    borderBottom: "0.5px solid #ebebeb",
+    background: "transparent", border: "none",
+    borderBottomWidth: "0.5px", borderBottomStyle: "solid", borderBottomColor: "#ebebeb",
+    cursor: "pointer",
+  }
 };
 
-// ── Related section styles ────────────────────────────────────────
-const relatedStyles: { [key: string]: React.CSSProperties } = {
-  wrapper: {
-    marginTop: "64px",
-  },
-  divider: {
-    borderTop: "1px solid #e8e8e8",
-    marginBottom: "48px",
-  },
-  section: {
-    marginBottom: "56px",
-  },
-  sectionTitle: {
-    fontSize: "18px",
-    fontWeight: 700,
-    color: "#111",
-    margin: "0 0 24px",
-    letterSpacing: "-0.3px",
-  },
-  empty: {
-    fontSize: "13px",
-    color: "#999",
-    padding: "24px 0",
-  },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
-    gap: "16px",
-  },
-  card: {
-    textDecoration: "none",
-    display: "flex",
-    flexDirection: "column",
-    color: "inherit",
-    cursor: "pointer",
-  },
-  imgWrap: {
-    background: "#f6f6f6",
-    aspectRatio: "3/4",
-    overflow: "hidden",
-    marginBottom: "12px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  img: {
-    width: "100%",
-    height: "100%",
-    objectFit: "cover",
-    transition: "transform 0.4s ease",
-  },
-  noImg: {
-    fontSize: "12px",
-    color: "#bbb",
-  },
-  info: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "4px",
-    padding: "0 2px",
-  },
-  name: {
-    fontSize: "14px",
-    fontWeight: 500,
-    color: "#111",
-    margin: 0,
-    lineHeight: 1.4,
-    display: "-webkit-box",
-    WebkitLineClamp: 2,
-    WebkitBoxOrient: "vertical",
-    overflow: "hidden",
-  },
-  normalPrice: {
-    fontSize: "15px",
-    fontWeight: 700,
-    color: "#111",
-    margin: 0,
-  },
-  regularPrice: {
-    fontSize: "13px",
-    color: "#999",
-    textDecoration: "line-through",
-    margin: 0,
-  },
-  salePrice: {
-    fontSize: "14px",
-    fontWeight: 700,
-    color: "#e53e3e",
-    margin: 0,
-  },
-};
