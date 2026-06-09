@@ -291,7 +291,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     letterSpacing: "0.12em",
     textTransform: "uppercase" as const,
     textDecoration: "none",
-    display: "flex",
+    // display: "flex",
     alignItems: "center",
     justifyContent: "center",
     fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
