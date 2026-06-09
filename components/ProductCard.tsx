@@ -263,6 +263,199 @@
 //     marginTop: "4px",
 //   },
 // };
+
+// ke-3
+// "use client";
+
+// import React, { useState } from "react";
+// import Link from "next/link";
+
+// interface ProductProps {
+//   name: string;
+//   slug: string;
+//   price?: string;
+//   regularPrice?: string;
+//   salePrice?: string;
+//   onSale?: boolean;
+//   image?: string;
+//   category?: string;
+// }
+
+// export default function ProductCard({
+//   name,
+//   slug,
+//   price,
+//   regularPrice,
+//   salePrice,
+//   onSale,
+//   image,
+//   category,
+// }: ProductProps) {
+//   const [hovered, setHovered] = useState(false);
+
+//   const fmt = (val?: string) => {
+//     if (!val) return "";
+//     const num = parseFloat(val.replace(/[^0-9.]/g, ""));
+//     if (isNaN(num)) return val;
+//     return new Intl.NumberFormat("id-ID", {
+//       style: "currency",
+//       currency: "IDR",
+//       minimumFractionDigits: 0,
+//     }).format(num);
+//   };
+
+//   return (
+//     <Link
+//       href={`/products/${slug}`}
+//       style={{ textDecoration: "none", color: "inherit", display: "block" }}
+//     >
+//       <div
+//         onMouseEnter={() => setHovered(true)}
+//         onMouseLeave={() => setHovered(false)}
+//         style={styles.card}
+//       >
+//         {/* Image */}
+//         <div style={styles.imageContainer}>
+//           {/* Sale badge */}
+//           {onSale && (
+//             <span style={styles.saleBadge}>SALE</span>
+//           )}
+
+//           {image ? (
+//             <img
+//               src={image}
+//               alt={name}
+//               style={{
+//                 ...styles.image,
+//                 transform: hovered ? "scale(1.05)" : "scale(1)",
+//               }}
+//               loading="lazy"
+//             />
+//           ) : (
+//             <div style={styles.imagePlaceholder} />
+//           )}
+//         </div>
+
+//         {/* Info */}
+//         <div style={styles.info}>
+//           {category && (
+//             <span style={styles.category}>{category.toUpperCase()}</span>
+//           )}
+
+//           <p style={styles.name}>{name}</p>
+
+//           {onSale && regularPrice ? (
+//             <div style={styles.priceRow}>
+//               <span style={styles.priceOriginal}>{fmt(regularPrice)}</span>
+//               <span style={styles.priceSale}>{fmt(salePrice)}</span>
+//             </div>
+//           ) : (
+//             <p style={styles.price}>{fmt(price)}</p>
+//           )}
+//         </div>
+//       </div>
+//     </Link>
+//   );
+// }
+
+// const styles: { [key: string]: React.CSSProperties } = {
+//   card: {
+//     width: "100%",
+//     backgroundColor: "#fff",
+//     display: "flex",
+//     flexDirection: "column",
+//     cursor: "pointer",
+//   },
+//   imageContainer: {
+//     position: "relative",
+//     width: "100%",
+//     aspectRatio: "1/1",
+//     backgroundColor: "#f5f3ef",
+//     overflow: "hidden",
+//     marginBottom: "10px",
+//     borderRadius: "8px",
+//   },
+//   saleBadge: {
+//     position: "absolute",
+//     top: "10px",
+//     left: "10px",
+//     zIndex: 2,
+//     background: "#111",
+//     color: "#fff",
+//     fontSize: "9px",
+//     fontWeight: 700,
+//     letterSpacing: "0.12em",
+//     padding: "3px 8px",
+//     borderRadius: "2px",
+//     fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+//   },
+//   image: {
+//     width: "100%",
+//     height: "100%",
+//     objectFit: "cover",
+//     display: "block",
+//     transition: "transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+//   },
+//   imagePlaceholder: {
+//     width: "100%",
+//     height: "100%",
+//     backgroundColor: "#ece9e3",
+//   },
+//   info: {
+//     display: "flex",
+//     flexDirection: "column",
+//     gap: "3px",
+//     padding: "0 2px",
+//   },
+//   category: {
+//     fontSize: "10px",
+//     color: "#aaa",
+//     letterSpacing: "0.1em",
+//     fontWeight: 500,
+//     fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+//     marginBottom: "1px",
+//   },
+//   name: {
+//     fontSize: "12px",
+//     fontWeight: 500,
+//     color: "#111",
+//     margin: 0,
+//     lineHeight: "1.45",
+//     fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+//     letterSpacing: "0.03em",
+//     display: "-webkit-box",
+//     WebkitLineClamp: 2,
+//     WebkitBoxOrient: "vertical",
+//     overflow: "hidden",
+//   },
+//   priceRow: {
+//     display: "flex",
+//     alignItems: "baseline",
+//     gap: "7px",
+//     marginTop: "4px",
+//   },
+//   priceOriginal: {
+//     fontSize: "11px",
+//     color: "#bbb",
+//     textDecoration: "line-through",
+//     fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+//   },
+//   priceSale: {
+//     fontSize: "13px",
+//     fontWeight: 500,
+//     color: "#111",
+//     fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+//   },
+//   price: {
+//     fontSize: "13px",
+//     fontWeight: 400,
+//     color: "#111",
+//     margin: 0,
+//     fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+//     marginTop: "4px",
+//   },
+// };
+
 "use client";
 
 import React, { useState } from "react";
@@ -275,6 +468,7 @@ interface ProductProps {
   regularPrice?: string;
   salePrice?: string;
   onSale?: boolean;
+  stockStatus?: string;
   image?: string;
   category?: string;
 }
@@ -286,10 +480,12 @@ export default function ProductCard({
   regularPrice,
   salePrice,
   onSale,
+  stockStatus,
   image,
   category,
 }: ProductProps) {
   const [hovered, setHovered] = useState(false);
+  const isOutOfStock = stockStatus === "OUT_OF_STOCK";
 
   const fmt = (val?: string) => {
     if (!val) return "";
@@ -314,18 +510,22 @@ export default function ProductCard({
       >
         {/* Image */}
         <div style={styles.imageContainer}>
-          {/* Sale badge */}
-          {onSale && (
+          {onSale && !isOutOfStock && (
             <span style={styles.saleBadge}>SALE</span>
           )}
-
+          {isOutOfStock && (
+            <div style={styles.soldOutOverlay}>
+              <span style={styles.soldOutLabel}>SOLD OUT</span>
+            </div>
+          )}
           {image ? (
             <img
               src={image}
               alt={name}
               style={{
                 ...styles.image,
-                transform: hovered ? "scale(1.05)" : "scale(1)",
+                transform: hovered && !isOutOfStock ? "scale(1.05)" : "scale(1)",
+                opacity: isOutOfStock ? 0.45 : 1,
               }}
               loading="lazy"
             />
@@ -339,10 +539,10 @@ export default function ProductCard({
           {category && (
             <span style={styles.category}>{category.toUpperCase()}</span>
           )}
-
-          <p style={styles.name}>{name}</p>
-
-          {onSale && regularPrice ? (
+          <p style={{ ...styles.name, color: isOutOfStock ? "#aaa" : "#111" }}>{name}</p>
+          {isOutOfStock ? (
+            <p style={styles.soldOutText}>Stok habis</p>
+          ) : onSale && regularPrice ? (
             <div style={styles.priceRow}>
               <span style={styles.priceOriginal}>{fmt(regularPrice)}</span>
               <span style={styles.priceSale}>{fmt(salePrice)}</span>
@@ -375,81 +575,72 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   saleBadge: {
     position: "absolute",
-    top: "10px",
-    left: "10px",
+    top: "10px", left: "10px", zIndex: 2,
+    background: "#111", color: "#fff",
+    fontSize: "9px", fontWeight: 700, letterSpacing: "0.12em",
+    padding: "3px 8px", borderRadius: "2px",
+    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+  },
+  soldOutOverlay: {
+    position: "absolute",
+    inset: 0,
+    background: "rgba(255,255,255,0.55)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     zIndex: 2,
-    background: "#111",
-    color: "#fff",
-    fontSize: "9px",
-    fontWeight: 700,
-    letterSpacing: "0.12em",
-    padding: "3px 8px",
-    borderRadius: "2px",
+  },
+  soldOutLabel: {
+    fontSize: "10px", fontWeight: 700, letterSpacing: "0.14em",
+    color: "#fff", background: "#888",
+    padding: "4px 12px", borderRadius: "2px",
     fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
   },
   image: {
-    width: "100%",
-    height: "100%",
-    objectFit: "cover",
-    display: "block",
-    transition: "transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+    width: "100%", height: "100%",
+    objectFit: "cover", display: "block",
+    transition: "transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.2s ease",
   },
   imagePlaceholder: {
-    width: "100%",
-    height: "100%",
+    width: "100%", height: "100%",
     backgroundColor: "#ece9e3",
   },
   info: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "3px",
-    padding: "0 2px",
+    display: "flex", flexDirection: "column",
+    gap: "3px", padding: "0 2px",
   },
   category: {
-    fontSize: "10px",
-    color: "#aaa",
-    letterSpacing: "0.1em",
-    fontWeight: 500,
-    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+    fontSize: "10px", color: "#aaa", letterSpacing: "0.1em",
+    fontWeight: 500, fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
     marginBottom: "1px",
   },
   name: {
-    fontSize: "12px",
-    fontWeight: 500,
-    color: "#111",
-    margin: 0,
-    lineHeight: "1.45",
-    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+    fontSize: "12px", fontWeight: 500, margin: 0,
+    lineHeight: "1.45", fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
     letterSpacing: "0.03em",
-    display: "-webkit-box",
-    WebkitLineClamp: 2,
-    WebkitBoxOrient: "vertical",
-    overflow: "hidden",
+    display: "-webkit-box", WebkitLineClamp: 2,
+    WebkitBoxOrient: "vertical", overflow: "hidden",
   },
-  priceRow: {
-    display: "flex",
-    alignItems: "baseline",
-    gap: "7px",
+  soldOutText: {
+    fontSize: "11px", color: "#bbb", margin: 0,
+    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
     marginTop: "4px",
   },
+  priceRow: {
+    display: "flex", alignItems: "baseline",
+    gap: "7px", marginTop: "4px",
+  },
   priceOriginal: {
-    fontSize: "11px",
-    color: "#bbb",
-    textDecoration: "line-through",
+    fontSize: "11px", color: "#bbb", textDecoration: "line-through",
     fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
   },
   priceSale: {
-    fontSize: "13px",
-    fontWeight: 500,
-    color: "#111",
+    fontSize: "13px", fontWeight: 500, color: "#111",
     fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
   },
   price: {
-    fontSize: "13px",
-    fontWeight: 400,
-    color: "#111",
-    margin: 0,
-    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+    fontSize: "13px", fontWeight: 400, color: "#111",
+    margin: 0, fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
     marginTop: "4px",
   },
 };

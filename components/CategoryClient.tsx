@@ -425,6 +425,7 @@ type Product = {
   salePrice?: string;
   onSale?: boolean;
   image?: { sourceUrl: string } | null;
+  stockStatus: string;
   productCategories?: { nodes: { name: string; slug?: string }[] };
 };
 
@@ -641,6 +642,7 @@ export default function CategoryClient({ products, categoryName, heroImage }: Pr
                     onSale={p.onSale}
                     image={p.image?.sourceUrl}
                     category={p.productCategories?.nodes?.[0]?.name}
+                    stockStatus={p.stockStatus}
                   />
                 </div>
               ))}

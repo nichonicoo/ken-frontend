@@ -1,7 +1,7 @@
     const API_URL = "http://ken-web.local/graphql";
 
 
-    export async function getHomeSlider() {
+export async function getHomeSlider() {
     const res = await fetch(API_URL, {
         method: "POST",
         headers: {
@@ -33,4 +33,4 @@
     const json = await res.json();
 
     return json.data.sliderHomes.nodes;
-    }
+}
