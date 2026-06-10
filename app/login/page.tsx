@@ -302,7 +302,7 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Cormorant_Garamond } from "next/font/google";
 import Link from "next/link";
@@ -343,6 +343,11 @@ function LoginForm() {
     if (res?.error) {
       setError("Email atau password salah. Silakan coba lagi.");
     } else if (res?.ok) {
+      const session = await getSession();
+
+    if (session?.authToken) {
+        localStorage.setItem("authToken", session.authToken);
+    }
       router.push(callbackUrl);
       router.refresh();
     }

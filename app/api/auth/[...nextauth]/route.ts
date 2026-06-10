@@ -31,8 +31,8 @@ async function gql(query: string, variables: Record<string, string>, token?: str
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
-//   if (token) headers["Authorization"] = `Bearer ${token}`;
-  if (token) headers["Authorization"] = `${token}`;
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+//   if (token) headers["Authorization"] = `${token}`;
 
   const res = await fetch(process.env.NEXT_PUBLIC_WORDPRESS_URL + "/graphql", {
     method: "POST",
@@ -40,11 +40,13 @@ async function gql(query: string, variables: Record<string, string>, token?: str
     body: JSON.stringify({ query, variables }),
   });
 
-  // add new to debug
-  const result = await res.json();
-  if (result.errors) {
-    console.error("DEBUG GraphQL Errors:", JSON.stringify(result.errors, null, 2));
-  }
+//   console.log('graphql: ',res.json());
+
+//   // add new to debug
+//   const result = await res.json();
+//   if (result.errors) {
+//     console.error("DEBUG GraphQL Errors:", JSON.stringify(result.errors, null, 2));
+//   }
 
   return res.json();
 }
@@ -57,29 +59,55 @@ export const authOptions: NextAuthOptions = {
         username: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
+    //   async authorize(credentials) {
+    //     if (!credentials?.username || !credentials?.password) return null;
+
+    //     try {
+    //       const { data, errors } = await gql(LOGIN_MUTATION, {
+    //         username: credentials.username,
+    //         password: credentials.password,
+    //       });
+
+    //       if (errors || !data?.login) return null;
+
+    //       const { authToken, refreshToken, user } = data.login;
+
+    //       return {
+    //         id: String(user.databaseId),
+    //         name: user.name,
+    //         email: user.email,
+    //         authToken,
+    //         refreshToken,
+    //       };
+    //     } catch {
+    //       return null;
+    //     }
+    //   },
       async authorize(credentials) {
-        if (!credentials?.username || !credentials?.password) return null;
-
-        try {
-          const { data, errors } = await gql(LOGIN_MUTATION, {
-            username: credentials.username,
-            password: credentials.password,
-          });
-
-          if (errors || !data?.login) return null;
-
-          const { authToken, refreshToken, user } = data.login;
-
-          return {
-            id: String(user.databaseId),
-            name: user.name,
-            email: user.email,
-            authToken,
-            refreshToken,
-          };
-        } catch {
-          return null;
+        // 🔴 EDIT (jangan return null langsung)
+        if (!credentials?.username || !credentials?.password) {
+          throw new Error("Missing credentials");
         }
+
+        const { data, errors } = await gql(LOGIN_MUTATION, {
+          username: credentials.username,
+          password: credentials.password,
+        });
+
+        // 🔴 EDIT (biar ga silent fail)
+        if (errors || !data?.login) {
+          console.error("LOGIN FAILED:", { errors, data });
+          throw new Error("Invalid credentials");
+        }
+
+        const { authToken, refreshToken, user } = data.login;
+        return {
+          id: String(user.databaseId),
+          name: user.name,
+          email: user.email,
+          authToken,
+          refreshToken,
+        };
       },
     }),
   ],

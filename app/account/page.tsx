@@ -1182,7 +1182,7 @@ const STATUS_LABEL: Record<string, { label: string; color: string; bg: string }>
 };
 
 // Status yang dianggap "current order" (belum selesai)
-const CURRENT_STATUSES = ["Pending", "Processing", "on-hold", "pending", "processing"];
+const CURRENT_STATUSES = ["Pending", "Processing", "on-hold", "pending", "processing", "PENDING", "PROCESSING"];
 
 type Tab = "current" | "history" | "profile" | "address";
 

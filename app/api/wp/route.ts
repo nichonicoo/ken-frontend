@@ -7,6 +7,7 @@ export async function POST(req: NextRequest) {
 
   // Forward woocommerce-session header dari browser ke WordPress
   const sessionToken = req.headers.get("woocommerce-session");
+  const authHeader = req.headers.get("authorization");
 
   const wpHeaders: Record<string, string> = {
     "Content-Type": "application/json",
@@ -14,6 +15,10 @@ export async function POST(req: NextRequest) {
 
   if (sessionToken) {
     wpHeaders["woocommerce-session"] = sessionToken;
+  }
+  
+  if (authHeader) {
+    wpHeaders["Authorization"] = authHeader;
   }
 
   const wpRes = await fetch(WP_GRAPHQL, {

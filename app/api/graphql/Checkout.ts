@@ -150,8 +150,13 @@ const API_URL = "/api/wp";
 
 async function gqlFetch(body: object) {
   const token = typeof window !== "undefined" ? localStorage.getItem("woo_session_token") : null;
+  const authToken = typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (token) headers["woocommerce-session"] = `Session ${token}`;
+
+  if (authToken) {
+    headers["Authorization"] = `Bearer ${authToken}`;
+  }
 
   const res = await fetch(API_URL, {
     method: "POST",
@@ -161,6 +166,12 @@ async function gqlFetch(body: object) {
 
   const newToken = res.headers.get("woocommerce-session");
   if (newToken && typeof window !== "undefined") localStorage.setItem("woo_session_token", newToken);
+
+//   const json = await res.json();
+
+//   if (json.errors) {
+//     console.error("GraphQL Error:", json.errors);
+//   }
 
   return res.json();
 }
