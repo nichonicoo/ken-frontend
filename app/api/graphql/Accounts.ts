@@ -184,6 +184,8 @@ const CUSTOMER_QUERY = `
 
 export async function getCustomer(token: string) {
   const data = await gql(CUSTOMER_QUERY, undefined, token);
+
+  console.log('daata: ', data.customer);
   return data?.customer || null;
 }
 
