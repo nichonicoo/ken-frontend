@@ -38,6 +38,13 @@ async function gql(query: string, variables: Record<string, string>, token?: str
     headers,
     body: JSON.stringify({ query, variables }),
   });
+
+  // add new to debug
+  const result = await res.json();
+  if (result.errors) {
+    console.error("DEBUG GraphQL Errors:", JSON.stringify(result.errors, null, 2));
+  }
+
   return res.json();
 }
 

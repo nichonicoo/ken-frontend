@@ -1170,8 +1170,8 @@ type Customer = {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const STATUS_LABEL: Record<string, { label: string; color: string; bg: string }> = {
-  PENDING:    { label: "Menunggu",    color: "#92400e", bg: "#fef3c7" },
-  PROCESSING: { label: "Diproses",   color: "#1e40af", bg: "#dbeafe" },
+  pending:    { label: "Menunggu",    color: "#92400e", bg: "#fef3c7" },
+  processing: { label: "Diproses",   color: "#1e40af", bg: "#dbeafe" },
   ON_HOLD:    { label: "Ditahan",    color: "#6b7280", bg: "#f3f4f6" },
   COMPLETED:  { label: "Selesai",    color: "#065f46", bg: "#d1fae5" },
   CANCELLED:  { label: "Dibatalkan", color: "#991b1b", bg: "#fee2e2" },
@@ -1180,7 +1180,7 @@ const STATUS_LABEL: Record<string, { label: string; color: string; bg: string }>
 };
 
 // Status yang dianggap "current order" (belum selesai)
-const CURRENT_STATUSES = ["PENDING", "PROCESSING", "ON_HOLD"];
+const CURRENT_STATUSES = ["pending", "processing", "on-hold"];
 
 type Tab = "current" | "history" | "profile" | "address";
 
