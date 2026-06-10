@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const WP_GRAPHQL = "http://ken-web.local/graphql";
+const WP_GRAPHQL = process.env.NEXT_PUBLIC_WORDPRESS_URL + "/graphql";;
 
 export async function POST(req: NextRequest) {
   const body = await req.json();

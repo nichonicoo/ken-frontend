@@ -1,4 +1,4 @@
-const API_URL = "http://ken-web.local/graphql";
+const API_URL =  process.env.NEXT_PUBLIC_WORDPRESS_URL + "/graphql";
 
 type Product = {
   name: string;
@@ -289,7 +289,7 @@ export async function searchProducts(keyword: string) {
     }
   `;
 
-  const res = await fetch("http://ken-web.local/graphql", {
+  const res = await fetch(API_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ query, variables: { search: keyword } }),
@@ -319,7 +319,7 @@ export async function searchProductsAll(keyword: string) {
     }
   `;
 
-  const res = await fetch("http://ken-web.local/graphql", {
+  const res = await fetch(API_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ query, variables: { search: keyword } }),

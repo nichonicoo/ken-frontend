@@ -1,4 +1,4 @@
-    const API_URL = "http://ken-web.local/graphql";
+    const API_URL = process.env.NEXT_PUBLIC_WORDPRESS_URL + "/graphql";;
 
 
 export async function getHomeSlider() {
