@@ -115,7 +115,8 @@ const WP_URL = process.env.NEXT_PUBLIC_WORDPRESS_URL + "/graphql";
 
 async function gql(query: string, variables?: Record<string, any>, token?: string) {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (token) headers["Authorization"] = `Bearer ${token}`;
+//   if (token) headers["Authorization"] = `Bearer ${token}`;
+  if (token) headers["Authorization"] = `${token}`;
 
   const res = await fetch(WP_URL, {
     method: "POST",

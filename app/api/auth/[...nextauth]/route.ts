@@ -31,7 +31,8 @@ async function gql(query: string, variables: Record<string, string>, token?: str
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
-  if (token) headers["Authorization"] = `Bearer ${token}`;
+//   if (token) headers["Authorization"] = `Bearer ${token}`;
+  if (token) headers["Authorization"] = `${token}`;
 
   const res = await fetch(process.env.NEXT_PUBLIC_WORDPRESS_URL + "/graphql", {
     method: "POST",
