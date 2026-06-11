@@ -813,6 +813,7 @@ export default function ProductDetails({ product }: { product: ProductDetail }) 
     try {
       await addToCart(product.databaseId, qty);
       setAddedToCart(true);
+      window.dispatchEvent(new Event("cartUpdated"));
       setTimeout(() => setAddedToCart(false), 2500);
     } catch (e) { console.error(e); }
   };

@@ -95,15 +95,9 @@
 //           <div style={styles.formGroup}>
 //             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
 //               <label style={styles.label}>Password</label>
-//               {/* TODO: arahkan ke halaman forgot password WordPress */}
-//               <a
-//                 href={`${process.env.NEXT_PUBLIC_WORDPRESS_URL}/wp-login.php?action=lostpassword`}
-//                 target="_blank"
-//                 rel="noopener noreferrer"
-//                 style={styles.forgotLink}
-//               >
+//               <Link href="/forgot-password" style={styles.forgotLink}>
 //                 Lupa password?
-//               </a>
+//               </Link>
 //             </div>
 //             <input
 //               type="password"
@@ -400,14 +394,9 @@ function LoginForm() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <label style={styles.label}>Password</label>
               {/* TODO: arahkan ke halaman forgot password WordPress */}
-              <a
-                href={`${process.env.NEXT_PUBLIC_WORDPRESS_URL}/wp-login.php?action=lostpassword`}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={styles.forgotLink}
-              >
-                Lupa password?
-              </a>
+              <Link href="/forgot-password" style={styles.forgotLink}>
+                 Lupa password?
+               </Link>
             </div>
             <input
               type="password"

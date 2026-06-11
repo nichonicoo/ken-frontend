@@ -161,7 +161,27 @@ const CUSTOMER_QUERY = `
           orderNumber
           status
           date
-          total
+          total(format: RAW)
+          subtotal(format: RAW)
+          shippingTotal(format: RAW)
+          discountTotal(format: RAW)
+          paymentMethodTitle
+          shipping {
+            firstName
+            lastName
+            address1
+            address2
+            city
+            state
+            postcode
+            country
+          }
+          shippingLines {
+            nodes {
+              methodTitle
+              total
+            }
+          }
           lineItems {
             nodes {
               productId
@@ -186,7 +206,6 @@ const CUSTOMER_QUERY = `
 export async function getCustomer(token: string) {
   const data = await gql(CUSTOMER_QUERY, undefined, token);
 
-  console.log('daata: ', data.customer);
   return data?.customer || null;
 }
 

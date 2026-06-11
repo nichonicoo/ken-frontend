@@ -1187,34 +1187,16 @@ const CURRENT_STATUSES = ["Pending", "Processing", "on-hold", "pending", "proces
 type Tab = "current" | "history" | "profile" | "address";
 
 // ─── Order Card ───────────────────────────────────────────────────────────────
-function OrderCard({ order, showReorder = false }: { order: Order; showReorder?: boolean }) {
-  const [open, setOpen] = useState(false);
-  const [reordering, setReordering] = useState(false);
-  const [reorderDone, setReorderDone] = useState(false);
+function OrderCard({ order }: { order: Order }) {
+  const router = useRouter();
   const status = STATUS_LABEL[order.status] || { label: order.status, color: "#111", bg: "#f3f4f6" };
   const date = new Date(order.date).toLocaleDateString("id-ID", {
     day: "numeric", month: "long", year: "numeric",
   });
 
-  const handleReorder = async () => {
-    setReordering(true);
-    try {
-      for (const item of order.lineItems.nodes) {
-        if (item.productId) {
-          await addToCart(item.productId, item.quantity);
-        }
-      }
-      setReorderDone(true);
-      setTimeout(() => setReorderDone(false), 3000);
-    } catch (e) {
-      console.error("Reorder failed:", e);
-    }
-    setReordering(false);
-  };
-
   return (
-    <div style={styles.orderCard}>
-      <div style={styles.orderCardHeader} onClick={() => setOpen((o) => !o)}>
+    <div style={styles.orderCard} onClick={() => router.push(`/orders?orderId=${order.databaseId}`)}>
+      <div style={styles.orderCardHeader}>
         <div style={styles.orderCardLeft}>
           <span style={styles.orderNum}>#{order.orderNumber}</span>
           <span style={styles.orderDate}>{date}</span>
@@ -1224,53 +1206,13 @@ function OrderCard({ order, showReorder = false }: { order: Order; showReorder?:
             {status.label}
           </span>
           <span style={styles.orderTotal}>{order.total}</span>
-          <svg
-            width="13" height="13" viewBox="0 0 24 24" fill="none"
-            stroke="#bbb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-            style={{ transform: open ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.2s", flexShrink: 0 }}
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            style={{ flexShrink: 0 }}
           >
             <polyline points="9 18 15 12 9 6" />
           </svg>
         </div>
       </div>
-
-      {open && (
-        <div style={styles.orderItems}>
-          {order.lineItems.nodes.map((item, i) => (
-            <div key={i} style={styles.orderItem}>
-              {item.product.node.image?.sourceUrl && (
-                <img
-                  src={item.product.node.image.sourceUrl}
-                  alt={item.product.node.name}
-                  style={styles.orderItemImg}
-                />
-              )}
-              <div style={styles.orderItemInfo}>
-                <p style={styles.orderItemName}>{item.product.node.name}</p>
-                <p style={styles.orderItemQty}>x{item.quantity}</p>
-              </div>
-              <p style={styles.orderItemTotal}>{item.total}</p>
-            </div>
-          ))}
-
-          {/* Reorder button — hanya di history */}
-          {showReorder && (
-            <div style={{ marginTop: 12, display: "flex", justifyContent: "flex-end" }}>
-              {reorderDone ? (
-                <p style={{ fontSize: 12, color: "#065f46" }}>✓ Produk ditambahkan ke keranjang</p>
-              ) : (
-                <button
-                  style={styles.reorderBtn}
-                  onClick={(e) => { e.stopPropagation(); handleReorder(); }}
-                  disabled={reordering}
-                >
-                  {reordering ? "Memproses..." : "Beli Lagi"}
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }
@@ -1405,8 +1347,6 @@ export default function AccountPage() {
         </button>
       </div>
 
-      <div style={styles.divider} />
-
       {/* Tabs */}
       <div style={styles.tabs}>
         {tabs.map(({ key, label }) => (
@@ -1432,7 +1372,7 @@ export default function AccountPage() {
           ) : (
             <div style={styles.orderList}>
               {currentOrders.map((order) => (
-                <OrderCard key={order.databaseId} order={order} showReorder={false} />
+                <OrderCard key={order.databaseId} order={order} />
               ))}
             </div>
           )}
@@ -1450,7 +1390,7 @@ export default function AccountPage() {
           ) : (
             <div style={styles.orderList}>
               {historyOrders.map((order) => (
-                <OrderCard key={order.databaseId} order={order} showReorder={true} />
+                <OrderCard key={order.databaseId} order={order} />
               ))}
             </div>
           )}
@@ -1683,4 +1623,8 @@ const styles: { [key: string]: React.CSSProperties } = {
   checkboxRow: { display: "flex", alignItems: "center", gap: "10px", margin: "20px 0 24px", cursor: "pointer" },
   checkbox: { width: 18, height: 18, borderRadius: "3px", borderWidth: "0.5px", borderStyle: "solid", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, cursor: "pointer", transition: "background 0.15s, border-color 0.15s" },
   checkboxLabel: { fontSize: "13px", color: "#555", fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", cursor: "pointer" },
+  ordersLink: { display: "block", textDecoration: "none", marginBottom: "30px" },
+  ordersLinkInner: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 22px", border: "0.5px solid #ebebeb", borderRadius: "8px", transition: "border-color 0.2s", cursor: "pointer" },
+  ordersLinkLabel: { fontSize: "14px", fontWeight: 600, color: "#111", marginBottom: "4px" },
+  ordersLinkDesc: { fontSize: "11px", color: "#aaa" },
 };

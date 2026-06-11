@@ -68,7 +68,8 @@ export default function Header() {
     fetchCategories();
   }, []);
 
-  // Fetch cart count — dijalankan saat mount dan setiap kali window focus
+  // Fetch cart count — dijalankan saat mount, setiap kali window focus,
+  // dan setiap kali ada event "cartUpdated" (dari ProductDetail, dll)
   useEffect(() => {
     async function fetchCartCount() {
       try {
@@ -85,9 +86,12 @@ export default function Header() {
 
     fetchCartCount();
 
-    // Re-fetch saat user kembali ke tab
     window.addEventListener("focus", fetchCartCount);
-    return () => window.removeEventListener("focus", fetchCartCount);
+    window.addEventListener("cartUpdated", fetchCartCount);
+    return () => {
+      window.removeEventListener("focus", fetchCartCount);
+      window.removeEventListener("cartUpdated", fetchCartCount);
+    };
   }, []);
 
   const firstName = session?.user?.name?.split(" ")[0] || "Akun";

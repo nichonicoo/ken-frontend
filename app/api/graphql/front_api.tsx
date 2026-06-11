@@ -67,7 +67,8 @@ export async function getProducts(
                 price(format: RAW)         
                 regularPrice(format: RAW)  
                 salePrice(format: RAW)     
-                onSale                     
+                onSale
+                stockStatus                     
                 image {
                 sourceUrl
                 altText
@@ -94,7 +95,8 @@ export async function getProducts(
                 price(format: RAW)         
                 regularPrice(format: RAW)  
                 salePrice(format: RAW)     
-                onSale                     
+                onSale
+                stockStatus                     
                 image {
                 sourceUrl
                 altText
@@ -310,8 +312,18 @@ export async function searchProductsAll(keyword: string) {
           slug
           ... on SimpleProduct {
             price(format: RAW)
+            regularPrice(format: RAW)
+            salePrice(format: RAW)
+            onSale
+            stockStatus
             image {
               sourceUrl
+              altText
+            }
+            productCategories {
+              nodes {
+                name
+              }
             }
           }
         }

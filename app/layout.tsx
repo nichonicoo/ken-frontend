@@ -14,7 +14,7 @@ export default function RootLayout({
         <Providers>
         <Header />
         {/* kasih spacing biar konten gak ketutup header */}
-        <main style={{ paddingTop: "100px" }}>
+        <main style={{ paddingTop: "82px" }}>
           {children}
         </main>
         <Footer />
