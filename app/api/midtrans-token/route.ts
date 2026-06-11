@@ -26,6 +26,11 @@ export async function POST(req: NextRequest) {
         order_id: String(orderId),
         gross_amount: Math.round(grossAmount),
       },
+      expiry: {
+        start_time: new Date().toISOString(),
+        unit: "hours",
+        duration: 8,
+      },
       customer_details: {
         first_name: firstName || "",
         last_name: lastName || "",

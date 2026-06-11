@@ -41,6 +41,16 @@ type Order = {
     postcode: string;
     country: string;
   } | null;
+  billing: {
+    firstName: string;
+    lastName: string;
+    address1: string;
+    address2: string;
+    city: string;
+    state: string;
+    postcode: string;
+    country: string;
+  } | null;
   shippingLines: {
     nodes: { methodTitle: string; total: string }[];
   };
@@ -90,6 +100,7 @@ function OrderDetailCard({ order, highlighted }: { order: Order; highlighted?: b
   const cardRef = useRef<HTMLDivElement>(null);
   const [reordering, setReordering] = useState(false);
   const [reorderDone, setReorderDone] = useState(false);
+  const [paying, setPaying] = useState(false);
 
   // Auto-scroll & flash highlight effect
   useEffect(() => {
@@ -99,6 +110,65 @@ function OrderDetailCard({ order, highlighted }: { order: Order; highlighted?: b
   }, [highlighted]);
   const status = STATUS_LABEL[order.status] || { label: order.status, color: "#111", bg: "#f3f4f6" };
   const isActive = CURRENT_STATUSES.includes(order.status);
+  const isPending = ["pending", "Pending", "PENDING"].includes(order.status);
+
+  // Load Midtrans Snap script (kalau belum dimuat)
+  useEffect(() => {
+    if (typeof window === "undefined" || (window as any).snap) return;
+    const script = document.createElement("script");
+    script.src = "https://app.sandbox.midtrans.com/snap/snap.js";
+    script.setAttribute("data-client-key", process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || "");
+    script.async = true;
+    document.body.appendChild(script);
+  }, []);
+
+  const handlePayNow = async () => {
+    setPaying(true);
+    try {
+      // Ambil snap token dari order
+      const res = await fetch(`/api/get-snap-token?orderId=${order.databaseId}`);
+      const data = await res.json();
+
+      if (!data.snap_token) {
+        alert("Token pembayaran tidak ditemukan. Silakan hubungi customer service.");
+        setPaying(false);
+        return;
+      }
+
+      const snap = (window as any).snap;
+      if (!snap) {
+        alert("Midtrans Snap belum dimuat. Refresh halaman.");
+        setPaying(false);
+        return;
+      }
+
+      snap.pay(data.snap_token, {
+        onSuccess: async (result: any) => {
+          // Update order status
+          await fetch("/api/update-order-payment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ orderId: order.databaseId, transactionId: result.transaction_id || "" }),
+          });
+          window.location.reload();
+        },
+        onPending: () => {
+          setPaying(false);
+        },
+        onError: () => {
+          alert("Pembayaran gagal. Silakan coba lagi.");
+          setPaying(false);
+        },
+        onClose: () => {
+          setPaying(false);
+        },
+      });
+    } catch (e) {
+      console.error("Pay now error:", e);
+      alert("Gagal memuat pembayaran.");
+      setPaying(false);
+    }
+  };
 
   const handleReorder = async () => {
     setReordering(true);
@@ -117,7 +187,7 @@ function OrderDetailCard({ order, highlighted }: { order: Order; highlighted?: b
     setReordering(false);
   };
 
-  const shippingAddr = order.shipping;
+  const shippingAddr = order.shipping || order.billing;
   const courier = order.shippingLines?.nodes?.[0];
 
   return (
@@ -225,6 +295,19 @@ function OrderDetailCard({ order, highlighted }: { order: Order; highlighted?: b
               {reordering ? "Memproses..." : "Beli Lagi"}
             </button>
           )}
+        </div>
+      )}
+
+      {/* Bayar Sekarang — for pending orders */}
+      {isPending && (
+        <div style={styles.cardFooter}>
+          <button
+            style={styles.payNowBtn}
+            onClick={handlePayNow}
+            disabled={paying}
+          >
+            {paying ? "Memproses..." : "Bayar Sekarang"}
+          </button>
         </div>
       )}
     </div>
@@ -630,6 +713,20 @@ const styles: { [key: string]: React.CSSProperties } = {
   reorderDone: {
     fontSize: "12px",
     color: "#065f46",
+  },
+  payNowBtn: {
+    height: 36,
+    padding: "0 22px",
+    background: "#dc2626",
+    color: "#fff",
+    border: "none",
+    borderRadius: "4px",
+    fontSize: "11px",
+    fontWeight: 600,
+    letterSpacing: "0.1em",
+    cursor: "pointer",
+    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+    width: "100%",
   },
 
   // Empty

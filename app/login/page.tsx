@@ -291,11 +291,20 @@
 //     fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
 //     transition: "border-color 0.15s ease",
 //   } as React.CSSProperties,
+//   spinner: {
+//     width: 28,
+//     height: 28,
+//     border: "2px solid #ebebeb",
+//     borderTopColor: "#111",
+//     borderRadius: "50%",
+//     animation: "spin 0.7s linear infinite",
+//     margin: "0 auto",
+//   } as React.CSSProperties,
 // };
 
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import { signIn, getSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Cormorant_Garamond } from "next/font/google";
@@ -315,6 +324,31 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [checking, setChecking] = useState(true);
+
+  // Cek session sekali — redirect langsung jika sudah login
+  useEffect(() => {
+    getSession().then((session) => {
+      if (session) {
+        router.replace(callbackUrl);
+      } else {
+        setChecking(false);
+      }
+    });
+  }, [router, callbackUrl]);
+
+  if (checking) {
+    return (
+      <div style={styles.page}>
+        <div style={styles.card}>
+          <div style={{ textAlign: "center", padding: "40px 0" }}>
+            <div style={{ fontSize: 24, marginBottom: 16 }}>⏳</div>
+            <p style={{ fontSize: 13, color: "#aaa" }}>Memeriksa sesi...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleSubmit = async () => {
     if (!email || !password) {

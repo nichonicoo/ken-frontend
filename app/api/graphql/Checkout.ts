@@ -267,24 +267,36 @@ export async function checkout(input: CheckoutInput) {
   return json.data?.checkout;
 }
 
-// Function 2 - update order setelah bayar (TAMBAHKAN DI BAWAH function checkout)
-export async function updateOrderPayment(orderId: number, transactionId: string) {
-  const wpUrl = process.env.NEXT_PUBLIC_WORDPRESS_URL;
-  const consumerKey = process.env.NEXT_PUBLIC_WC_CONSUMER_KEY;
-  const consumerSecret = process.env.NEXT_PUBLIC_WC_CONSUMER_SECRET;
+// ─── Update order shipping setelah checkout ───────────────────────────────
+export async function updateOrderShipping(
+  orderId: number,
+  shipping: {
+    methodTitle: string;
+    total: string;
+    courierName: string;
+    serviceName: string;
+  }
+) {
+  const res = await fetch("/api/update-order-shipping", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ orderId, ...shipping }),
+  });
 
-  const res = await fetch(
-    `${wpUrl}/wp-json/wc/v3/orders/${orderId}?consumer_key=${consumerKey}&consumer_secret=${consumerSecret}`,
-    {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        status: "processing",
-        transaction_id: transactionId,
-        payment_method: "midtrans",
-        payment_method_title: "Midtrans",
-      }),
-    }
-  );
-  return res.json();
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to update shipping");
+  return data;
+}
+
+// ─── Update order payment setelah bayar ────────────────────────────────────
+export async function updateOrderPayment(orderId: number, transactionId: string) {
+  const res = await fetch("/api/update-order-payment", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ orderId, transactionId }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to update payment");
+  return data;
 }

@@ -2573,12 +2573,12 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Cormorant_Garamond } from "next/font/google";
 import { getCart } from "@/app/api/graphql/Transaction";
-import { getShippingMethods, updateShippingMethod, checkout, updateOrderPayment } from "@/app/api/graphql/Checkout";
+import { getShippingMethods, updateShippingMethod, checkout, updateOrderShipping, updateOrderPayment } from "@/app/api/graphql/Checkout";
 import CitySearch from "@/components/CitySearch";
 
 const cormorant = Cormorant_Garamond({ subsets: ["latin"], weight: ["300", "400", "500"] });
@@ -2682,6 +2682,25 @@ export default function CheckoutPage() {
   const [selectedRate, setSelectedRate] = useState("");
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState("");
+  const [snapReady, setSnapReady] = useState(false);
+  const snapLoaded = useRef(false);
+
+  // Load Midtrans Snap script manual
+  useEffect(() => {
+    if (snapLoaded.current) return;
+    snapLoaded.current = true;
+
+    const script = document.createElement("script");
+    script.src = "https://app.sandbox.midtrans.com/snap/snap.js";
+    script.setAttribute("data-client-key", process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || "");
+    script.async = true;
+    script.onload = () => setSnapReady(true);
+    document.body.appendChild(script);
+
+    return () => {
+      // cleanup
+    };
+  }, []);
 
   // Computed: harga ongkir yang dipilih
   const selectedShipping = shippingRates.find(r => r.id === selectedRate);
@@ -2717,13 +2736,45 @@ export default function CheckoutPage() {
     setCityLabel(area.label);
   };
 
-  // Prefill email from session
+  // Prefill data dari session + saved address dari akun
   useEffect(() => {
-    if (session?.user?.email) setEmail(session.user.email);
+    if (!session?.user?.email) return;
+
+    setEmail(session.user.email);
     if (session?.user?.name) {
       const parts = session.user.name.split(" ");
       setFirstName(parts[0] || "");
       setLastName(parts.slice(1).join(" ") || "");
+    }
+
+    // Ambil alamat tersimpan dari akun via API route
+    const token = (session as any)?.authToken || localStorage.getItem("authToken");
+    if (token) {
+      fetch("/api/customer", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      })
+        .then(r => r.json())
+        .then((data: any) => {
+          const customer = data.customer;
+          if (!customer) return;
+          const billing = customer.billing;
+          if (billing) {
+            if (billing.phone) setPhone(billing.phone);
+            if (billing.address1) setAddress1(billing.address1);
+            if (billing.address2) setAddress2(billing.address2 || "");
+            if (billing.city) {
+              setCity(billing.city);
+              setCityLabel(billing.city);
+            }
+            if (billing.state) setState(billing.state);
+            if (billing.postcode) setPostcode(billing.postcode);
+          }
+        })
+        .catch(console.error);
     }
   }, [session]);
 
@@ -2796,44 +2847,72 @@ export default function CheckoutPage() {
     setError("");
 
     try {
+      console.log("🔄 [1] Checkout mutation...");
       // 1. Create order via WooCommerce dengan midtrans
+      const shippingAddr = { firstName, lastName, email, phone, address1, address2, city, state, postcode, country: "ID" };
       const result = await checkout({
-        billing: { firstName, lastName, email, phone, address1, address2, city, state, postcode, country: "ID" },
+        billing: shippingAddr,
+        shipping: shippingAddr,
         paymentMethod: "midtrans",
         shippingMethod: selectedRate ? [selectedRate] : undefined,
       });
+      console.log("✅ [1] Checkout result:", result);
 
       if (!result?.order?.databaseId) {
+        console.error("❌ [1] No databaseId in result");
         setError("Gagal membuat pesanan. Silakan coba lagi.");
         setProcessing(false);
         return;
       }
 
       const orderId = result.order.databaseId;
+      console.log("🆔 Order ID:", orderId);
 
-      // 2. Ambil grand total (subtotal + ongkir Biteship)
-      const grossAmount = grandTotal > 0 ? grandTotal
-        : parseFloat(String(result.order.total || "0").replace(/[^0-9.]/g, ""));
-      // WooCommerce Midtrans plugin taruh token di: /checkout/order-pay/ID/?key=xxx&snap_token=xxx
-      let snapToken: string | null = null;
-
-      if (result.redirect) {
+      // 1b. Update shipping order dengan data dari Biteship
+      if (selectedShipping) {
+        console.log("🔄 [1b] Update shipping:", selectedShipping);
         try {
-          const redirectUrl = new URL(result.redirect);
-          snapToken = redirectUrl.searchParams.get("snap_token");
+          const shipResult = await updateOrderShipping(orderId, {
+            methodTitle: selectedShipping.id,
+            total: String(selectedShipping.price),
+            courierName: selectedShipping.courierName,
+            serviceName: selectedShipping.serviceName,
+          });
+          console.log("✅ [1b] Shipping update result:", shipResult);
         } catch (e) {
-          console.error("Failed to parse redirect URL:", e);
+          console.error("❌ [1b] Failed to update order shipping:", e);
         }
       }
 
-      // 3. Kalau tidak dapat dari redirect, generate sendiri via API
+      // 2. Hitung gross amount
+      console.log("🔄 [2] grossAmount calculation...");
+      const grossAmount = grandTotal > 0 ? grandTotal
+        : parseFloat(String(result.order.total || "0").replace(/[^0-9.]/g, ""));
+      console.log("✅ [2] grossAmount:", grossAmount);
+
+      let snapToken: string | null = null;
+
+      if (result.redirect) {
+        console.log("🔄 [2a] Check redirect for snap_token...");
+        try {
+          const redirectUrl = new URL(result.redirect);
+          snapToken = redirectUrl.searchParams.get("snap_token");
+          console.log("✅ [2a] snap_token from redirect:", snapToken);
+        } catch (e) {
+          console.error("❌ [2a] Failed to parse redirect URL:", e);
+        }
+      }
+
+      // 3. Generate snap token via API
       if (!snapToken) {
+        console.log("🔄 [3] Fetching Midtrans token...");
         const tokenRes = await fetch("/api/midtrans-token", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ orderId, grossAmount, firstName, lastName, email, phone }),
         });
         const tokenData = await tokenRes.json();
+        console.log("✅ [3] Midtrans response:", tokenData);
         snapToken = tokenData.snap_token || null;
       }
 
@@ -2843,35 +2922,54 @@ export default function CheckoutPage() {
         return;
       }
 
-      // 4. Open Midtrans Snap popup — jangan redirect ke WordPress
+      // 3b. Simpan snap_token ke order (untuk bayar nanti)
+      try {
+        await fetch("/api/save-snap-token", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ orderId, snapToken }),
+        });
+      } catch (e) {
+        console.error("Failed to save snap token:", e);
+      }
+
+      // 4. Open Midtrans Snap popup
       const snap = (window as any).snap;
-      if (!snap) {
-        setError("Midtrans Snap belum dimuat. Refresh dan coba lagi.");
+      if (!snap || !snapReady) {
+        setError("Midtrans Snap belum siap. Tunggu sebentar.");
         setProcessing(false);
         return;
       }
 
-      snap.pay(snapToken, {
-        onSuccess: async (result: any) => {
-          // Update order di WooCommerce: set status processing + transaction ID
-          try {
-            await updateOrderPayment(orderId, result.transaction_id || "");
-          } catch (e) {
-            console.error("Failed to update order:", e);
-          }
-          router.push(`/order-confirmation?order=${orderId}`);
-        },
-        onPending: () => {
-          router.push(`/order-confirmation?order=${orderId}&status=pending`);
-        },
-        onError: () => {
-          setError("Pembayaran gagal. Silakan coba lagi.");
-          setProcessing(false);
-        },
-        onClose: () => {
-          setProcessing(false);
-        },
-      });
+      try {
+        snap.pay(snapToken, {
+          onSuccess: async (result: any) => {
+            // Update order di WooCommerce: set status processing + transaction ID
+            try {
+              await updateOrderPayment(orderId, result.transaction_id || "");
+            } catch (e) {
+              console.error("Failed to update order:", e);
+            }
+            router.push(`/order-confirmation?order=${orderId}`);
+          },
+          onPending: () => {
+            // Redirect ke orders page — user bisa bayar nanti
+            router.push(`/orders?orderId=${orderId}`);
+          },
+          onError: () => {
+            setError("Pembayaran gagal. Silakan coba lagi.");
+            setProcessing(false);
+          },
+          onClose: () => {
+            // Tutup popup tanpa bayar — redirect ke orders page
+            router.push(`/orders?orderId=${orderId}`);
+          },
+        });
+      } catch (snapErr) {
+        console.error("Snap pay error:", snapErr);
+        setError("Gagal membuka popup pembayaran. Periksa apakah popup blocker aktif.");
+        setProcessing(false);
+      }
 
     } catch (e: any) {
       setError(e.message || "Terjadi kesalahan. Silakan coba lagi.");

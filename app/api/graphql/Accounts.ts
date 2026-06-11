@@ -176,6 +176,16 @@ const CUSTOMER_QUERY = `
             postcode
             country
           }
+          billing {
+            firstName
+            lastName
+            address1
+            address2
+            city
+            state
+            postcode
+            country
+          }
           shippingLines {
             nodes {
               methodTitle
